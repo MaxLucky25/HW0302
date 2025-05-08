@@ -35,7 +35,11 @@ export class UserEntity {
     }
 
     toViewModel() {
-        const { password, _id, ...view } = this.data;
-        return view;
+        return {
+            id: this.data.id,
+            login: this.data.login,
+            email: this.data.email,
+            createdAt: this.data.createdAt,
+        };
     }
 }
