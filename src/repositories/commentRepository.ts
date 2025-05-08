@@ -1,32 +1,27 @@
-import { commentCollection } from '../db/mongo-db';
-import { CommentDBType, CommentViewModel, CreateCommentDto, UpdateCommentDto } from '../models/commentModels';
+import {CommentViewModel, CreateCommentDto, UpdateCommentDto } from '../models/commentModels';
 import { getPaginationParams } from '../utility/commonPagination';
 import {injectable} from "inversify";
+import {CommentModel} from "../infrastructure/commentSchema";
+import { CommentEntity } from '../domain/commentEntity';
 
 @injectable()
 export class CommentRepository  {
     async getCommentById(id: string): Promise<CommentViewModel | null> {
-        const comment = await commentCollection.findOne({ id }, { projection: { _id: 0, postId: 0 } });
-        return comment as CommentViewModel | null;
+        const comment = await CommentModel.findOne({ id }).lean();
+        if (!comment) return null;
+        return new CommentEntity(comment).getViewModel();
     }
 
     async create(postId: string,
                  input: CreateCommentDto, commentatorInfo:
                  { userId: string; userLogin: string }): Promise<CommentViewModel> {
-        const newComment: CommentDBType = {
-            id: Date.now().toString(),
-            content: input.content,
-            commentatorInfo,
-            postId,
-            createdAt: new Date(),
-        };
-        const result = await commentCollection.insertOne(newComment);
-        const created = await commentCollection.findOne({ _id: result.insertedId });
-        return this.mapToOutput(created!);
+        const entity = CommentEntity.create({ content: input.content, postId, commentatorInfo });
+        await new CommentModel(entity.getDBData()).save();
+        return entity.getViewModel();
     }
 
     async update(id: string, input: UpdateCommentDto): Promise<boolean> {
-        const result = await commentCollection.updateOne(
+        const result = await CommentModel.updateOne(
             { id },
             { $set: { content: input.content } }
         );
@@ -34,31 +29,26 @@ export class CommentRepository  {
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await commentCollection.deleteOne({ id });
+        const result = await CommentModel.deleteOne({ id });
         return result.deletedCount === 1;
     }
 
     async getCommentsByPostId(postId: string, query: any): Promise<any> {
         const { pageNumber, pageSize, sortBy, sortDirection } = getPaginationParams(query);
         const filter = { postId };
-        const totalCount = await commentCollection.countDocuments(filter);
+        const totalCount = await CommentModel.countDocuments(filter);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const items = await commentCollection.find(filter)
+        const items = await CommentModel.find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .toArray();
+            .lean();
         return {
             pagesCount,
             page: pageNumber,
             pageSize,
             totalCount,
-            items: items.map(({ _id, postId, ...rest }) => rest) as CommentViewModel[],
+            items: items.map(c => new CommentEntity(c).getViewModel()),
         };
-    }
-
-    mapToOutput(comment: CommentDBType): CommentViewModel {
-        const { _id, postId, ...rest } = comment;
-        return rest;
     }
 }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import {requestLogsCollection} from "../db/mongo-db";
 import config from "../utility/config";
+import {RequestLogModel} from "../infrastructure/requestLogSchema";
 
 
 export const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
@@ -9,7 +9,7 @@ export const rateLimitMiddleware = async (req: Request, res: Response, next: Nex
 
     const windowStart = new Date(Date.now() - config.LIMIT_WINDOW_SECONDS * 1000);
 
-    const requestsCount = await requestLogsCollection.countDocuments({
+    const requestsCount = await RequestLogModel.countDocuments({
         ip,
         url,
         date: { $gte: windowStart },

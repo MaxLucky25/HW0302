@@ -31,7 +31,6 @@ export class AuthValidator {
                 .isLength({min: 3, max: 10}).withMessage('Login must be between 3 and 10 characters')
                 .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login contains invalid characters')
                 .custom(async (login) => {
-                    // 🔧 Проверка существования логина
                     const user = await this.userRepository.getByLogin(login);
                     if (user) {
                         throw new Error('Login already exists');

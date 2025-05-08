@@ -1,11 +1,11 @@
 import { injectable } from "inversify";
-import { sessionsCollection } from "../db/mongo-db";
 import { SessionDBType } from "../models/sessionModel";
+import {SessionModel} from "../infrastructure/sessionSchema";
 
 @injectable()
 export class SessionRepository  {
     async createSession(session: SessionDBType) {
-        await sessionsCollection.insertOne(session);
+        await SessionModel.create(session);
     }
 
         async updateLastActiveDate(
@@ -15,7 +15,7 @@ export class SessionRepository  {
             ip: string,
             title: string
         ) {
-            const result = await sessionsCollection.updateOne(
+            const result = await SessionModel.updateOne(
                 { deviceId },
                 { $set: { lastActiveDate, expiresDate, ip, title } }
             );
@@ -23,18 +23,18 @@ export class SessionRepository  {
     }
 
     async deleteByDeviceId(deviceId: string) {
-        return sessionsCollection.deleteOne({ deviceId });
+        return SessionModel.deleteOne({ deviceId });
     }
 
     async deleteAllExcept(deviceId: string, userId: string) {
-        return sessionsCollection.deleteMany({ deviceId: { $ne: deviceId }, userId });
+        return SessionModel.deleteMany({ deviceId: { $ne: deviceId }, userId });
     }
 
     async findAllByUser(userId: string) {
-        return sessionsCollection.find({ userId }).toArray();
+        return SessionModel.find({ userId }).lean();
     }
 
     async findByDeviceId(deviceId: string) {
-        return sessionsCollection.findOne({ deviceId });
+        return SessionModel.findOne({ deviceId }).lean();
     }
 }

@@ -1,7 +1,8 @@
 import { injectable } from 'inversify';
-import { blogCollection } from '../db/mongo-db';
 import { BlogViewModel } from '../models/blogModels';
 import { getPaginationParams } from '../utility/commonPagination';
+import {BlogModel} from "../infrastructure/blogSchema";
+
 
 @injectable()
 export class BlogQueryRepository {
@@ -11,15 +12,15 @@ export class BlogQueryRepository {
 
         const filter = searchNameTerm ? { name: { $regex: searchNameTerm, $options: 'i' } } : {};
 
-        const totalCount = await blogCollection.countDocuments(filter);
+        const totalCount = await BlogModel.countDocuments(filter);
 
         const pagesCount = Math.ceil(totalCount / pageSize);
 
-        const items = await blogCollection.find(filter)
+        const items = await BlogModel.find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .toArray();
+            .lean();
 
         return {
             pagesCount,

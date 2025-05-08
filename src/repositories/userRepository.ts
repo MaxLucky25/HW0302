@@ -1,61 +1,54 @@
-import {EmailConfirmationType, UserDBType} from "../models/userModel";
-import { userCollection } from "../db/mongo-db";
-import {injectable} from "inversify";
+import { injectable } from 'inversify';
+import { UserEntity } from '../domain/userEntity';
+import { UserModel } from '../infrastructure/userSchema';
+
 
 @injectable()
-export class UserRepository  {
+export class UserRepository {
 
-    async getById(id: string): Promise<UserDBType | null> {
-        return await userCollection.findOne({ id }, { projection: { _id: 0 } });
+    async getById(id: string): Promise<UserEntity | null> {
+        const doc = await UserModel.findOne({ id }).lean();
+        return doc ? new UserEntity(doc) : null;
     }
 
-    async getByLogin(login: string): Promise<UserDBType | null> {
-        return await userCollection.findOne({ login }, { projection: { _id: 0 } });
+    async getByLogin(login: string): Promise<UserEntity | null> {
+        const doc = await UserModel.findOne({ login }).lean();
+        return doc ? new UserEntity(doc) : null;
     }
 
-    async getByEmail(email: string): Promise<UserDBType | null> {
-        return await userCollection.findOne({ email }, { projection: { _id: 0 } });
+    async getByEmail(email: string): Promise<UserEntity | null> {
+        const doc = await UserModel.findOne({ email }).lean();
+        return doc ? new UserEntity(doc) : null;
     }
 
-    async getByLoginOrEmail(loginOrEmail: string): Promise<UserDBType | null> {
-        return (await this.getByLogin(loginOrEmail)) ?? (await this.getByEmail(loginOrEmail));
+    async getByLoginOrEmail(value: string): Promise<UserEntity | null> {
+        return await this.getByLogin(value) ?? await this.getByEmail(value);
     }
 
-    async doesExistByLoginOrEmail(login: string, email: string): Promise<UserDBType | null> {
-        const byLogin = await this.getByLogin(login);
-        if (byLogin) return byLogin;
-        return await this.getByEmail(email);
+    async doesExistByLoginOrEmail(login: string, email: string): Promise<boolean> {
+        const count = await UserModel.countDocuments({ $or: [{ login }, { email }] });
+        return count > 0;
     }
-        // Только CRUD операции
-        async insert(user: UserDBType): Promise<void> {
-            await userCollection.insertOne(user);
-        }
 
-    async updateConfirmation(userIdOrEmail: string, updateData: Partial<EmailConfirmationType>): Promise<boolean> {
-        const updateFields: Record<string, any> = {};
+    async insert(user: UserEntity): Promise<void> {
+        await new UserModel(user.toObject()).save();
+    }
 
-        if (updateData.confirmationCode !== undefined) {
-            updateFields["emailConfirmation.confirmationCode"] = updateData.confirmationCode;
-        }
-        if (updateData.expirationDate !== undefined) {
-            updateFields["emailConfirmation.expirationDate"] = updateData.expirationDate;
-        }
-        if (updateData.isConfirmed !== undefined) {
-            updateFields["emailConfirmation.isConfirmed"] = updateData.isConfirmed;
-        }
-
-        const filter = { $or: [ { id: userIdOrEmail }, { email: userIdOrEmail } ] };
-        const result = await userCollection.updateOne(filter, { $set: updateFields });
+    async updateConfirmation(idOrEmail: string, update: any): Promise<boolean> {
+        const result = await UserModel.updateOne(
+            { $or: [{ id: idOrEmail }, { email: idOrEmail }] },
+            { $set: { 'emailConfirmation': update } }
+        );
         return result.modifiedCount === 1;
     }
 
-    async findByConfirmationCode(code: string): Promise<UserDBType | null> {
-        return await userCollection.findOne({ "emailConfirmation.confirmationCode": code }, { projection: { _id: 0 } });
+    async findByConfirmationCode(code: string): Promise<UserEntity | null> {
+        const doc = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code }).lean();
+        return doc ? new UserEntity(doc) : null;
     }
 
-
     async delete(id: string): Promise<boolean> {
-        const result = await userCollection.deleteOne({ id: id });
+        const result = await UserModel.deleteOne({ id });
         return result.deletedCount === 1;
     }
 }

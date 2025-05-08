@@ -4,11 +4,11 @@ import {BcryptService} from "./bcryptService";
 import {UserRepository} from "../repositories/userRepository";
 import {EmailService} from "./emailService";
 import {RevokedTokenRepository} from '../repositories/revokedTokenRepository';
-import {UserDBType} from "../models/userModel";
 import {JwtService} from "./jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
+import {UserEntity} from "../domain/userEntity";
 
 @injectable()
 export class AuthService {
@@ -106,7 +106,7 @@ export class AuthService {
             return null;
         }
 
-        const user: UserDBType = {
+        const user = new UserEntity({
             id: Date.now().toString(),
             login,
             email,
@@ -117,7 +117,7 @@ export class AuthService {
                 expirationDate: add(new Date(), { hours: 1 }),
                 isConfirmed: false
             }
-        };
+        });
 
         await this.userRepository.insert(user);
         await this.emailService.sendRegistrationEmail(email, user.emailConfirmation.confirmationCode);

@@ -1,8 +1,8 @@
 import { PostDBType, CreatePostDto, UpdatePostDto, PostViewModel } from '../models/postModels';
 import {BlogRepository} from './blogRepository';
-import {postCollection} from "../db/mongo-db";
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
+import {PostModel} from "../infrastructure/postSchema";
 
 @injectable()
 export class PostRepository {
@@ -11,11 +11,7 @@ export class PostRepository {
     ) {}
 
     async getById(id: string): Promise<PostViewModel | null> {
-        const post = await postCollection.findOne(
-            {id:id},
-            {projection: {_id: 0} }
-        );
-        return post as PostViewModel | null;
+        return PostModel.findOne({id:id},{_id: 0}).lean();
     }
 
     async create(input:  CreatePostDto): Promise<PostViewModel | null> {
@@ -32,16 +28,15 @@ export class PostRepository {
             createdAt: new Date()
         };
 
-        const result = await postCollection.insertOne(newPost);
-        const created = await postCollection.findOne({ _id: result.insertedId });
-        return this.mapToOutput(created!);
+        await PostModel.create(newPost);
+        return newPost;
     }
 
     async update(id: string, input: UpdatePostDto): Promise<boolean> {
         const blog = await this.blogRepository.getById(input.blogId);
         if (!blog) return false;
 
-        const result = await postCollection.updateOne(
+        const result = await  PostModel.updateOne(
             {id: id},
             {
                 $set: {
@@ -57,12 +52,7 @@ export class PostRepository {
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await postCollection.deleteOne({ id: id });
+        const result = await PostModel.deleteOne({ id: id });
         return result.deletedCount === 1;
     }
-    mapToOutput(post: PostDBType): PostViewModel {
-        const { _id, ...rest } = post;
-        return rest;
-    }
-
-};
+}

@@ -1,4 +1,4 @@
-import { postCollection } from '../db/mongo-db';
+import { PostModel } from '../infrastructure/postSchema';
 import { PostViewModel } from '../models/postModels';
 import { getPaginationParams } from '../utility/commonPagination';
 import {injectable} from "inversify";
@@ -7,42 +7,42 @@ import {injectable} from "inversify";
 export class PostQueryRepository {
     async getPosts(query: any): Promise<any> {
         const { pageNumber, pageSize, sortBy, sortDirection } = getPaginationParams(query);
-        const filter = {};
 
-        const totalCount = await postCollection.countDocuments(filter);
+        const filter = {};
+        const totalCount = await PostModel.countDocuments(filter);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const items = await postCollection.find(filter)
+        const items = await PostModel.find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .toArray();
+            .lean();
 
         return {
             pagesCount,
             page: pageNumber,
             pageSize,
             totalCount,
-            items: items.map(({ _id, ...rest }) => rest) as PostViewModel[],
+            items: items as PostViewModel[],
         };
     }
 
     async getPostsByBlogId(blogId: string, query: any): Promise<any> {
         const { pageNumber, pageSize, sortBy, sortDirection } = getPaginationParams(query);
         const filter = { blogId };
-        const totalCount = await postCollection.countDocuments(filter);
+        const totalCount = await PostModel.countDocuments(filter);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const items = await postCollection.find(filter)
+        const items = await PostModel.find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .toArray();
+            .lean();
 
         return {
             pagesCount,
             page: pageNumber,
             pageSize,
             totalCount,
-            items: items.map(({ _id, ...rest }) => rest) as PostViewModel[],
+            items: items as PostViewModel[],
         };
     }
 }

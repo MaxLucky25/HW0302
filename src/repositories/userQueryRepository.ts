@@ -1,11 +1,12 @@
-import { userCollection } from "../db/mongo-db";
+import { UserModel } from "../infrastructure/userSchema";
 import {getUsersPaginationParams} from "../utility/userPagination";
 import {injectable} from "inversify";
 
 @injectable()
 export class UserQueryRepository  {
     async getUsers(query: any): Promise<any>{
-        const {pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm} = getUsersPaginationParams(query);
+        const {pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm} =
+            getUsersPaginationParams(query);
 
     const filter: any = {};
     const orConditions: any[] = [];
@@ -21,13 +22,14 @@ export class UserQueryRepository  {
             filter.$or = orConditions;
         }
 
-        const totalCount = await userCollection.countDocuments(filter);
+        const totalCount = await UserModel.countDocuments(filter);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const items = await userCollection.find(filter)
+
+        const items = await UserModel.find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .toArray();
+            .lean();
 
         return {
             pagesCount,

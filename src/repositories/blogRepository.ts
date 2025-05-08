@@ -1,18 +1,15 @@
 import { BlogDBType, CreateBlogDto, UpdateBlogDto, BlogViewModel } from '../models/blogModels';
-import {blogCollection} from "../db/mongo-db";
 import {injectable} from "inversify";
+import {BlogModel} from "../infrastructure/blogSchema";
 
 @injectable()
 export class BlogRepository  {
-    // логика нахождения блога по id
+
     async getById(id: string): Promise<BlogViewModel | null> {
-        const blog = await blogCollection.findOne(
-            {id:id},
-            {projection: {_id: 0} }
-        );
-        return blog as BlogViewModel | null;
+        const blog = await BlogModel.findOne({id:id},{_id: 0}).lean();
+        return blog ?? null;
     }
-    // логика создания блога
+
     async create(input: CreateBlogDto): Promise<BlogViewModel> {
         const newBlog: BlogDBType = {
             id: Date.now().toString(),
@@ -20,37 +17,23 @@ export class BlogRepository  {
             createdAt: new Date(),
             isMembership: false,
         };
-        // создание блога
-        const result = await blogCollection.insertOne(newBlog);
-        // нахождение добавленого блога
-        const created = await blogCollection.findOne({ _id: result.insertedId });
-        // возвращение созданного блога без objectId
-        return this.mapToOutput(created!);
+
+        await BlogModel.create(newBlog);
+        return newBlog;
 
     }
-    // обновление блога по id
+
     async update(id: string, input: UpdateBlogDto): Promise<boolean> {
-       const result = await blogCollection.updateOne(
-           // id блога который мы хотим обновить
+       const result = await BlogModel.updateOne(
            {id:id},
-           // параметрый которые мы можем изменить
-           { $set: {
-                   name: input.name,
-                   description: input.description,
-                   websiteUrl: input.websiteUrl
-               }}
+           { $set: { ...input } }
        );
-       // проверка обновления
        return result.matchedCount === 1;
     }
-    // логика удаления блога по id
+
     async delete(id: string): Promise<boolean> {
-        const result = await blogCollection.deleteOne({id:id});
+        const result = await BlogModel.deleteOne({id:id});
         return result.deletedCount === 1;
     }
-    // функция которая возвращает блог без _id
-    mapToOutput(blog: BlogDBType): BlogViewModel {
-        const { _id, ...rest } = blog;
-        return rest;
-    }
+
 }

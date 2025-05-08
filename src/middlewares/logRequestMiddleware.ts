@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import {requestLogsCollection} from '../db/mongo-db';
+import {RequestLogModel} from "../infrastructure/requestLogSchema";
+
 
 export const logRequestMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -9,7 +10,7 @@ export const logRequestMiddleware = async (req: Request, res: Response, next: Ne
             date: new Date(),
         };
 
-        await requestLogsCollection.insertOne(logEntry);
+        await RequestLogModel.insertOne(logEntry);
     } catch (err) {
         console.error('Logging error:', err);
     }

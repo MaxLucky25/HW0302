@@ -1,12 +1,12 @@
 import app from './app';
-import { connectToDB } from './db/mongo-db';
+import {connectToMongo} from './db/mongooseConnection';
 
 const PORT = process.env.PORT || 3000;
 
 
 const start = async () => {
     try {
-        const isConnected = await connectToDB();
+        const isConnected = await connectToMongo();
         if (!isConnected) {
             console.error('Failed to connect to database');
             process.exit(1);
