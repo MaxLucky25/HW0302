@@ -1,0 +1,71 @@
+import {Container} from "inversify";
+import TYPES from "./types";
+import {BlogController} from "../controllers/blogController";
+import {BlogService} from "../services/blogService";
+import {UserService} from "../services/userService";
+import {UserController} from "../controllers/userController";
+import {BlogRepository} from "../repositories/blogRepository";
+import {BlogQueryRepository} from "../repositories/blogQueryRepository";
+import {UserRepository} from "../repositories/userRepository";
+import {UserQueryRepository} from "../repositories/userQueryRepository";
+import {PostRepository} from "../repositories/postRepository";
+import {PostQueryRepository} from "../repositories/postQueryRepository";
+import {PostService} from "../services/postService";
+import {PostController} from "../controllers/postController";
+import {CommentController} from "../controllers/commentController";
+import { CommentRepository } from "../repositories/commentRepository";
+import {CommentService} from "../services/commentService";
+import {BcryptService} from "../services/bcryptService";
+import {EmailService} from "../services/emailService";
+import {RevokedTokenRepository} from "../repositories/revokedTokenRepository";
+import {JwtService} from "../services/jwtService";
+import {SessionRepository} from "../repositories/sessionRepository";
+import {AuthService} from "../services/authService";
+import {AuthController} from "../controllers/authController";
+import {SecurityController} from "../controllers/securityController";
+import {AuthValidator} from "../validators/authValidators";
+import {PostValidator} from "../validators/postValidators";
+import {AuthRefreshTokenMiddleware} from "../middlewares/authRefreshTokenMiddleware";
+
+
+
+const container = new Container();
+
+container.bind<BlogController>(TYPES.BlogController).to(BlogController);
+container.bind<BlogService>(TYPES.BlogService).to(BlogService);
+container.bind<BlogRepository>(TYPES.BlogRepository).to(BlogRepository);
+container.bind<BlogQueryRepository>(TYPES.BlogQueryRepository).to(BlogQueryRepository);
+
+container.bind<UserService>(TYPES.UserService).to(UserService);
+container.bind<UserController>(TYPES.UserController).to(UserController);
+container.bind<UserRepository>(TYPES.UserRepository).to(UserRepository);
+container.bind<UserQueryRepository>(TYPES.UserQueryRepository).to(UserQueryRepository);
+
+container.bind<PostRepository>(TYPES.PostRepository).to(PostRepository)
+container.bind<PostQueryRepository>(TYPES.PostQueryRepository).to(PostQueryRepository);
+container.bind<PostService>(TYPES.PostService).to(PostService);
+container.bind<PostController>(TYPES.PostController).to(PostController);
+
+container.bind<CommentController>(TYPES.CommentController).to(CommentController);
+container.bind<CommentRepository>(TYPES.CommentRepository).to(CommentRepository);
+container.bind<CommentService>(TYPES.CommentService).to(CommentService);
+
+container.bind<BcryptService>(TYPES.BcryptService).to(BcryptService);
+
+container.bind<EmailService>(TYPES.EmailService).to(EmailService);
+
+container.bind<RevokedTokenRepository>(TYPES.RevokedTokenRepository).to(RevokedTokenRepository);
+
+container.bind<JwtService>(TYPES.JwtService).to(JwtService);
+
+container.bind<SessionRepository>(TYPES.SessionRepository).to(SessionRepository);
+container.bind<SecurityController>(TYPES.SecurityController).to(SecurityController);
+
+container.bind<AuthService>(TYPES.AuthService).to(AuthService);
+container.bind<AuthController>(TYPES.AuthController).to(AuthController);
+
+container.bind<AuthValidator>(TYPES.AuthValidator).to(AuthValidator);
+container.bind<PostValidator>(TYPES.PostValidator).to(PostValidator);
+container.bind<AuthRefreshTokenMiddleware>(TYPES.AuthRefreshTokenMiddleware).to(AuthRefreshTokenMiddleware);
+
+export default container;
