@@ -1,6 +1,7 @@
 import { injectable } from 'inversify';
 import { UserEntity } from '../domain/userEntity';
 import { UserModel } from '../infrastructure/userSchema';
+import {randomUUID} from "crypto";
 
 
 @injectable()
@@ -51,7 +52,7 @@ export class UserRepository {
         const user = await UserModel.findById(userId);
         if (!user) return false;
         user.passwordRecovery = {
-            recoveryCode: '',
+            recoveryCode: randomUUID(),
             expirationDate: new Date(),
             isConfirmed: false
         };

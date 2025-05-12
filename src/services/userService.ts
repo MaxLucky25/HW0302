@@ -38,7 +38,7 @@ export class UserService  {
                 isConfirmed: true,
             },
             passwordRecovery: {
-                recoveryCode: '',
+                recoveryCode: randomUUID(),
                 expirationDate: new Date(),
                 isConfirmed: false
             }

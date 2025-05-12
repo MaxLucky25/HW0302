@@ -118,7 +118,7 @@ export class AuthService {
                 isConfirmed: false
             },
             passwordRecovery: {
-                recoveryCode: '',
+                recoveryCode: randomUUID(),
                 expirationDate: new Date(),
                 isConfirmed: false
             }
