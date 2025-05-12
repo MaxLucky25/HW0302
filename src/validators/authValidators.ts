@@ -120,7 +120,11 @@ export class AuthValidator {
                     if (!user) {
                         throw new Error('Incorrect or expired recovery code');
                     }
-                    if (!user.passwordRecovery || new Date() > new Date(user.passwordRecovery.expirationDate)) {
+                    const recovery = user.passwordRecovery;
+                    if (!recovery || recovery.isConfirmed) {
+                        throw new Error('Incorrect or expired recovery code');
+                    }
+                    if (new Date() > new Date(recovery.expirationDate)) {
                         throw new Error('Incorrect or expired recovery code');
                     }
                     return true;
