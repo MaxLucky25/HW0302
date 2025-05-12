@@ -115,6 +115,16 @@ export class AuthValidator {
             body('recoveryCode')
                 .isString().withMessage('Recovery code must be a string')
                 .notEmpty().withMessage('Recovery code is required')
+                .custom(async (code) => {
+                    const user = await this.userRepository.getByRecoveryCode(code);
+                    if (!user) {
+                        throw new Error('Incorrect or expired recovery code');
+                    }
+                    if (!user.passwordRecovery || new Date() > new Date(user.passwordRecovery.expirationDate)) {
+                        throw new Error('Incorrect or expired recovery code');
+                    }
+                    return true;
+                })
         ];
     }
 
