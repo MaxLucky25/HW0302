@@ -99,4 +99,23 @@ export class AuthValidator {
         ];
     }
 
+    recoveryEmailValidator(): ValidationChain[] {
+        return [
+            body('email')
+                .isEmail().withMessage('Invalid email format')
+                .notEmpty().withMessage('Email is required')
+        ];
+    }
+
+    newPasswordValidator(): ValidationChain[] {
+        return [
+            body('newPassword')
+                .isString().withMessage('Password must be a string')
+                .isLength({ min: 6, max: 20 }).withMessage('Password must be between 6 and 20 characters'),
+            body('recoveryCode')
+                .isString().withMessage('Recovery code must be a string')
+                .notEmpty().withMessage('Recovery code is required')
+        ];
+    }
+
 }

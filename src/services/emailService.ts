@@ -37,4 +37,16 @@ export class EmailService  {
         return await this.sendEmail(email, subject, text, html);
     }
 
+    async sendRecoveryEmail(email: string, recoveryCode: string): Promise<boolean> {
+        const subject = "Восстановление пароля";
+        const text = `Your password recovery code: ${recoveryCode}`;
+        const html = `
+      <h1>Password recovery</h1>
+      <p>To recover your password please follow the link below:
+          <a href='https://somesite.com/new-password?recoveryCode=${recoveryCode}'>recover password</a>
+      </p>
+    `;
+        return await this.sendEmail(email, subject, text, html);
+    }
+
 }

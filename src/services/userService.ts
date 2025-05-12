@@ -37,6 +37,11 @@ export class UserService  {
                 expirationDate: new Date(),
                 isConfirmed: true,
             },
+            passwordRecovery: {
+                recoveryCode: '',
+                expirationDate: new Date(),
+                isConfirmed: false
+            }
         });
 
         await this.userRepository.insert(newUser);

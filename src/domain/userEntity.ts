@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs';
-import {EmailConfirmationType, UserDBType} from "../models/userModel";
+
+import { UserDBType} from "../models/userModel";
 
 export class UserEntity {
     constructor(private data: UserDBType) {}
@@ -10,25 +10,8 @@ export class UserEntity {
     get createdAt() { return this.data.createdAt; }
     get emailConfirmation() { return this.data.emailConfirmation; }
     get password() { return this.data.password; }
+    get passwordRecovery() { return this.data.passwordRecovery; }
 
-    isEmailConfirmed(): boolean {
-        return this.data.emailConfirmation.isConfirmed;
-    }
-
-    checkConfirmationCode(code: string): boolean {
-        return this.data.emailConfirmation.confirmationCode === code;
-    }
-
-    updateEmailConfirmation(update: Partial<EmailConfirmationType>) {
-        this.data.emailConfirmation = {
-            ...this.data.emailConfirmation,
-            ...update
-        };
-    }
-
-    async isPasswordCorrect(rawPassword: string): Promise<boolean> {
-        return bcrypt.compare(rawPassword, this.data.password);
-    }
 
     toObject(): UserDBType {
         return { ...this.data };

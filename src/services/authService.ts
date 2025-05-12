@@ -116,6 +116,11 @@ export class AuthService {
                 confirmationCode: randomUUID(),
                 expirationDate: add(new Date(), { hours: 1 }),
                 isConfirmed: false
+            },
+            passwordRecovery: {
+                recoveryCode: '',
+                expirationDate: new Date(),
+                isConfirmed: false
             }
         });
 
@@ -148,6 +153,38 @@ export class AuthService {
         const sent = await this.emailService.sendRegistrationEmail(email, newConfirmation.confirmationCode);
         return sent ? newConfirmation.confirmationCode : null;
     }
+
+    async sendPasswordRecoveryCode(email: string): Promise<boolean> {
+        const user = await this.userRepository.getByEmail(email);
+        if (!user || !user.emailConfirmation.isConfirmed) return false;
+
+        const recoveryCode = randomUUID();
+        const expirationDate = add(new Date(), { hours: 1 });
+
+        const updated = await this.userRepository.updateRecovery(user.id, {
+            recoveryCode,
+            expirationDate,
+
+        });
+        if (!updated) return false;
+
+        return await this.emailService.sendRecoveryEmail(email, recoveryCode);
+    }
+
+    async confirmNewPassword(newPassword: string, recoveryCode: string): Promise<boolean> {
+        const user = await this.userRepository.getByRecoveryCode(recoveryCode);
+        if (
+            !user ||
+            !user.passwordRecovery?.recoveryCode ||
+            user.passwordRecovery.expirationDate < new Date()
+        ) return false;
+
+        const newHash = await this.bcryptService.generateHash(newPassword);
+
+        return await this.userRepository.updatePassword(user.id, newHash);
+    }
+
+
 }
 
 function generateConfirmation() {

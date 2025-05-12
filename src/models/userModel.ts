@@ -6,6 +6,12 @@ export type EmailConfirmationType = {
     isConfirmed: boolean;
 };
 
+export type PasswordRecoveryType = {
+    recoveryCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
+};
+
 
 export type UserDBType = {
     _id?: ObjectId;
@@ -15,6 +21,8 @@ export type UserDBType = {
     email: string;
     createdAt: string;
     emailConfirmation: EmailConfirmationType;
+    passwordRecovery: PasswordRecoveryType;
+
 };
 
 export type UserViewModel =Omit<UserDBType, '_id' | 'password'>;

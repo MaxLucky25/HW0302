@@ -47,6 +47,37 @@ export class UserRepository {
         return doc ? new UserEntity(doc) : null;
     }
 
+    async updateRecovery(userId: string, recovery: { recoveryCode: string, expirationDate: Date }): Promise<boolean> {
+        const user = await UserModel.findById(userId);
+        if (!user) return false;
+        user.passwordRecovery = {
+            recoveryCode: '',
+            expirationDate: new Date(),
+            isConfirmed: false
+        };
+        await user.save();
+        return true;
+    }
+
+    async getByRecoveryCode(code: string): Promise<UserEntity | null> {
+        const user = await UserModel.findOne({ "passwordRecovery.recoveryCode": code });
+        return user ? new UserEntity(user) : null;
+    }
+
+    async updatePassword(userId: string, newHashedPassword: string): Promise<boolean> {
+        const user = await UserModel.findById(userId);
+        if (!user) return false;
+        user.password = newHashedPassword;
+        user.passwordRecovery = {
+            recoveryCode: '',
+            expirationDate: new Date(),
+            isConfirmed: false
+        };
+        await user.save();
+        return true;
+    }
+
+
     async delete(id: string): Promise<boolean> {
         const result = await UserModel.deleteOne({ id });
         return result.deletedCount === 1;

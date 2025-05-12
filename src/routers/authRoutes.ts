@@ -63,3 +63,18 @@ authRouter.post('/registration-email-resending',
     inputCheckErrorsMiddleware,
     controller.resendEmail
 );
+
+authRouter.post('/password-recovery',
+    rateLimitMiddleware,
+    validator.recoveryEmailValidator(),
+    inputCheckErrorsMiddleware,
+    controller.sendRecoveryCode
+);
+
+authRouter.post('/new-password',
+    rateLimitMiddleware,
+    validator.newPasswordValidator(),
+    inputCheckErrorsMiddleware,
+    controller.setNewPassword
+);
+
