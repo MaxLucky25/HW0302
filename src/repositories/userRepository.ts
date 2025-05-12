@@ -52,8 +52,7 @@ export class UserRepository {
         const user = await UserModel.findById(userId);
         if (!user) return false;
         user.passwordRecovery = {
-            recoveryCode: randomUUID(),
-            expirationDate: new Date(),
+            ...recovery,
             isConfirmed: false
         };
         await user.save();
@@ -70,7 +69,7 @@ export class UserRepository {
         if (!user) return false;
         user.password = newHashedPassword;
         user.passwordRecovery = {
-            recoveryCode: '',
+            recoveryCode: randomUUID(),
             expirationDate: new Date(),
             isConfirmed: false
         };

@@ -27,7 +27,7 @@ export class UserService  {
         if (exists) return null;
 
         const newUser = new UserEntity({
-            id: Date.now().toString(),
+            id: randomUUID(),
             login: dto.login,
             email: dto.email,
             password: await bcrypt.hash(dto.password, 10),
