@@ -60,7 +60,7 @@ export class UserRepository {
     }
 
     async getByRecoveryCode(code: string): Promise<UserEntity | null> {
-        const user = await UserModel.findOne({ "passwordRecovery.recoveryCode": code });
+        const user = await UserModel.findOne({ "passwordRecovery.recoveryCode": code }).lean();
         return user ? new UserEntity(user) : null;
     }
 
