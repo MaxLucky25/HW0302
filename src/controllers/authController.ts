@@ -131,19 +131,16 @@ export class AuthController {
     }
 
     sendRecoveryCode = async (req: Request, res: Response) => {
-        const success = await this.authService.sendPasswordRecoveryCode(req.body.email);
-        if (!success) {
-            res.sendStatus(400);
-            return;
-        }
+        await this.authService.sendPasswordRecoveryCode(req.body.email);
         res.sendStatus(204);
+        return;
     }
 
     setNewPassword = async (req: Request, res: Response) => {
         const { newPassword, recoveryCode } = req.body;
         const success = await this.authService.confirmNewPassword(newPassword, recoveryCode);
         if (!success) {
-            res.sendStatus(400);
+            res.sendStatus(400)
             return;
         }
         res.sendStatus(204);
