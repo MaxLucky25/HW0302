@@ -49,7 +49,7 @@ export class UserRepository {
     }
 
     async updateRecovery(userId: string, recovery: { recoveryCode: string, expirationDate: Date }): Promise<boolean> {
-        const user = await UserModel.findById(userId);
+        const user = await UserModel.findOne({id:userId});
         if (!user) return false;
         user.passwordRecovery = {
             ...recovery,
@@ -65,7 +65,7 @@ export class UserRepository {
     }
 
     async updatePassword(userId: string, newHashedPassword: string): Promise<boolean> {
-        const user = await UserModel.findById(userId);
+        const user = await UserModel.findOne({id:userId});
         if (!user) return false;
         user.password = newHashedPassword;
         user.passwordRecovery = {
