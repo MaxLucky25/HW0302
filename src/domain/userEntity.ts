@@ -1,4 +1,3 @@
-
 import { UserDBType} from "../models/userModel";
 
 export class UserEntity {

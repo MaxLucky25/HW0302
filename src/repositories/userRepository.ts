@@ -2,6 +2,8 @@ import { injectable } from 'inversify';
 import { UserEntity } from '../domain/userEntity';
 import { UserModel } from '../infrastructure/userSchema';
 import {randomUUID} from "crypto";
+import {CreateUserDto} from "../models/userModel";
+import bcrypt from "bcryptjs";
 
 
 @injectable()
@@ -29,6 +31,32 @@ export class UserRepository {
     async doesExistByLoginOrEmail(login: string, email: string): Promise<boolean> {
         const count = await UserModel.countDocuments({ $or: [{ login }, { email }] });
         return count > 0;
+    }
+
+    async createUserByAdmin(dto: CreateUserDto) {
+        const exists = await this.doesExistByLoginOrEmail(dto.login, dto.email);
+        if (exists) return null;
+
+        const newUser = new UserEntity({
+            id: randomUUID(),
+            login: dto.login,
+            email: dto.email,
+            password: await bcrypt.hash(dto.password, 10),
+            createdAt: new Date().toISOString(),
+            emailConfirmation: {
+                confirmationCode: randomUUID(),
+                expirationDate: new Date(),
+                isConfirmed: true,
+            },
+            passwordRecovery: {
+                recoveryCode: randomUUID(),
+                expirationDate: new Date(),
+                isConfirmed: false
+            }
+        });
+
+        await this.insert(newUser);
+        return newUser.toViewModel();
     }
 
     async insert(user: UserEntity): Promise<void> {

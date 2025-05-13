@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 
 dotenv.config()
 
-const mongoURI = process.env.MONGO_URL || "mongodb://0.0.0.0:27017";
+const dbName = 'Cluster0103';
+const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017/${dbName}';
 
 
 export const connectToMongo = async () => {
