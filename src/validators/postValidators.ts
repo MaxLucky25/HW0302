@@ -1,13 +1,13 @@
 import {body, ValidationChain} from 'express-validator';
-import {BlogRepository} from '../repositories/blogRepository';
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
+import {BlogQueryRepository} from "../repositories/blogQueryRepository";
 
 
 @injectable()
 export class PostValidator {
     constructor(
-        @inject(TYPES.BlogRepository) private blogRepository: BlogRepository
+        @inject(TYPES.BlogQueryRepository) private blogQueryRepository: BlogQueryRepository
     )
     {}
 
@@ -30,7 +30,7 @@ export class PostValidator {
         body('blogId')
         .optional()
         .custom(async (value) => {
-            const blog = await this.blogRepository.getById(value);
+            const blog = await this.blogQueryRepository.getById(value);
             if (!blog) throw new Error('Blog not found');
             return true;
         })

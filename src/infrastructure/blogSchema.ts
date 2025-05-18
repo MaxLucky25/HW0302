@@ -1,8 +1,12 @@
 import {model, Schema} from "mongoose";
-import { BlogDBType } from "../models/blogModels";
+import {BlogDBType, BlogViewModel} from "../models/blogModels";
 
 
-const BlogSchema = new Schema<BlogDBType>({
+export interface BlogDocument extends Document, BlogDBType {
+    toViewModel(): BlogViewModel;
+}
+
+const BlogSchema = new Schema<BlogDocument>({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -11,4 +15,15 @@ const BlogSchema = new Schema<BlogDBType>({
     isMembership: { type: Boolean, required: true },
 });
 
-export const BlogModel = model<BlogDBType>('Blog', BlogSchema);
+BlogSchema.methods.toViewModel = function (): BlogViewModel {
+    return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        websiteUrl: this.websiteUrl,
+        createdAt: this.createdAt,
+        isMembership: this.isMembership,
+    };
+};
+
+export const BlogModel = model<BlogDocument>('Blog', BlogSchema);

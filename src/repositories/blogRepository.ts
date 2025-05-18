@@ -1,38 +1,39 @@
-import { BlogDBType, CreateBlogDto, UpdateBlogDto, BlogViewModel } from '../models/blogModels';
+import {BlogDto, BlogViewModel} from '../models/blogModels';
 import {injectable} from "inversify";
 import {BlogModel} from "../infrastructure/blogSchema";
 
 @injectable()
 export class BlogRepository  {
 
-    async getById(id: string): Promise<BlogViewModel | null> {
-        const blog = await BlogModel.findOne({id:id},{_id: 0}).lean();
-        return blog ?? null;
-    }
-
-    async create(input: CreateBlogDto): Promise<BlogViewModel> {
-        const newBlog: BlogDBType = {
+    async create(input: BlogDto): Promise<BlogViewModel> {
+        const newBlog = new BlogModel({
             id: Date.now().toString(),
-            ...input,
+            name: input.name,
+            description: input.description,
+            websiteUrl: input.websiteUrl,
             createdAt: new Date(),
             isMembership: false,
-        };
+        });
 
-        await BlogModel.create(newBlog);
-        return newBlog;
+        await newBlog.save();
+        return newBlog.toViewModel();
 
     }
 
-    async update(id: string, input: UpdateBlogDto): Promise<boolean> {
-       const result = await BlogModel.updateOne(
-           {id:id},
-           { $set: { ...input } }
-       );
-       return result.matchedCount === 1;
+    async update(id: string, input: BlogDto): Promise<boolean> {
+        const blog = await BlogModel.findOne({ id });
+        if (!blog) return false;
+
+        blog.name = input.name;
+        blog.description = input.description;
+        blog.websiteUrl = input.websiteUrl;
+
+        await blog.save();
+        return true;
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await BlogModel.deleteOne({id:id});
+        const result = await BlogModel.deleteOne({id});
         return result.deletedCount === 1;
     }
 

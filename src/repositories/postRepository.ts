@@ -1,24 +1,20 @@
-import { PostDBType, CreatePostDto, UpdatePostDto, PostViewModel } from '../models/postModels';
-import {BlogRepository} from './blogRepository';
+import {PostDto, PostViewModel } from '../models/postModels';
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
 import {PostModel} from "../infrastructure/postSchema";
+import {BlogQueryRepository} from "./blogQueryRepository";
 
 @injectable()
 export class PostRepository {
     constructor(
-       @inject(TYPES.BlogRepository)private blogRepository: BlogRepository
+       @inject(TYPES.BlogQueryRepository)private blogQueryRepository: BlogQueryRepository
     ) {}
 
-    async getById(id: string): Promise<PostViewModel | null> {
-        return PostModel.findOne({id:id},{_id: 0}).lean();
-    }
-
-    async create(input:  CreatePostDto): Promise<PostViewModel | null> {
-        const blog = await this.blogRepository.getById(input.blogId);
+    async create(input:PostDto): Promise<PostViewModel | null> {
+        const blog = await this.blogQueryRepository.getById(input.blogId);
         if (!blog) return null;
 
-        const newPost: PostDBType = {
+        const newPost = new PostModel({
             id: Date.now().toString(),
             title: input.title,
             shortDescription: input.shortDescription,
@@ -26,33 +22,30 @@ export class PostRepository {
             blogId: input.blogId,
             blogName: blog.name,
             createdAt: new Date()
-        };
+        });
 
-        await PostModel.create(newPost);
-        return newPost;
+        await newPost.save();
+        return newPost.toViewModel();
     }
 
-    async update(id: string, input: UpdatePostDto): Promise<boolean> {
-        const blog = await this.blogRepository.getById(input.blogId);
+    async update(id: string, input:PostDto): Promise<boolean> {
+        const post = await PostModel.findOne({id});
+        if (!post) return false;
+        const blog = await this.blogQueryRepository.getById(input.blogId);
         if (!blog) return false;
 
-        const result = await  PostModel.updateOne(
-            {id: id},
-            {
-                $set: {
-                    title: input.title,
-                    shortDescription: input.shortDescription,
-                    content: input.content,
-                    blogId: input.blogId,
-                    blogName: blog.name,
-                }
-            }
-        );
-        return result.matchedCount === 1;
+        post.title = input.title;
+        post.shortDescription = input.shortDescription;
+        post.content = input.content;
+        post.blogId = input.blogId;
+        post.blogName = blog.name;
+
+        await post.save();
+        return true;
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await PostModel.deleteOne({ id: id });
+        const result = await PostModel.deleteOne({id});
         return result.deletedCount === 1;
     }
 }

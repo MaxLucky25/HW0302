@@ -3,6 +3,7 @@ import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {PostService} from "../services/postService";
 import {CommentService} from "../services/commentService";
+import {PostQueryRepository} from "../repositories/postQueryRepository";
 
 
 
@@ -10,16 +11,17 @@ import {CommentService} from "../services/commentService";
 export class PostController {
     constructor(
         @inject(TYPES.PostService) private postService: PostService,
+        @inject(TYPES.PostQueryRepository) private postQueryRepository: PostQueryRepository,
         @inject(TYPES.CommentService) private commentService: CommentService,
     ) {}
 
     getAllPosts = async (req: Request, res: Response) => {
-        const result = await this.postService.getAllPosts(req.query);
+        const result = await this.postQueryRepository.getPosts(req.query);
         res.status(200).json(result);
     };
 
     getPostById = async (req: Request, res: Response) => {
-        const post = await this.postService.getPostById(req.params.id);
+        const post = await this.postQueryRepository.getById(req.params.id);
         post ? res.json(post) : res.sendStatus(404);
     };
 

@@ -2,20 +2,24 @@ import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {BlogService} from "../services/blogService";
 import { Request, Response } from 'express';
+import { BlogQueryRepository } from "../repositories/blogQueryRepository";
+import { PostQueryRepository } from "../repositories/postQueryRepository";
 
 @injectable()
 export class BlogController {
     constructor(
-        @inject(TYPES.BlogService)private blogService: BlogService
+        @inject(TYPES.BlogService)private blogService: BlogService,
+        @inject(TYPES.BlogQueryRepository)private blogQueryRepository: BlogQueryRepository,
+        @inject(TYPES.PostQueryRepository)private postQueryRepository: PostQueryRepository,
     ) {}
 
     getAllBlogs = async (req: Request, res: Response) => {
-        const result = await this.blogService.getAllBlogs(req.query);
+        const result = await this.blogQueryRepository.getBlogs(req.query);
         res.status(200).json(result);
     };
 
     getBlogById = async (req: Request, res: Response) => {
-        const blog = await this.blogService.getBlogBYId(req.params.id);
+        const blog = await this.blogQueryRepository.getById(req.params.id);
         blog ? res.json(blog) : res.sendStatus(404);
     };
 
@@ -35,17 +39,17 @@ export class BlogController {
     };
 
     getPostsForBlog = async (req: Request, res: Response) => {
-        const blog = await this.blogService.getBlogBYId(req.params.id);
+        const blog = await this.blogQueryRepository.getById(req.params.id);
         if (!blog) {
             res.sendStatus(404);
             return;
         }
-        const result = await this.blogService.getPostsForBlog(req.params.id, req.query);
+        const result = await this.postQueryRepository.getPostsByBlogId(req.params.id, req.query);
         res.status(200).json(result);
     };
 
     createPostsForBlog = async (req: Request, res: Response) => {
-        const blog = await this.blogService.getBlogBYId(req.params.id);
+        const blog = await this.blogQueryRepository.getById(req.params.id);
         if (!blog) {
             res.sendStatus(404);
             return;

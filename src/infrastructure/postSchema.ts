@@ -1,7 +1,12 @@
 import { Schema, model } from 'mongoose';
-import {PostDBType} from "../models/postModels";
+import {PostDBType, PostViewModel} from "../models/postModels";
 
-export const PostSchema = new Schema<PostDBType>({
+
+export interface PostDocument extends Document, PostDBType {
+    toViewModel(): PostViewModel;
+}
+
+const PostSchema = new Schema<PostDocument>({
     id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     shortDescription: { type: String, required: true },
@@ -11,4 +16,17 @@ export const PostSchema = new Schema<PostDBType>({
     createdAt: { type: Date, required: true },
 });
 
-export const PostModel = model<PostDBType>('Post', PostSchema);
+PostSchema.methods.toViewModel = function () :PostViewModel {
+    return {
+        id:this.id,
+        title: this.title,
+        shortDescription: this.shortDescription,
+        content: this.content,
+        blogId: this.blogId,
+        blogName:this.blogName,
+        createdAt: this.createdAt,
+    }
+}
+
+export const PostModel = model<PostDocument>('Post', PostSchema);
+
