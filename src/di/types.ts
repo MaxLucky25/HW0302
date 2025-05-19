@@ -23,8 +23,6 @@ const TYPES ={
     AuthRouter: Symbol.for("AuthRouter"),
     AuthController: Symbol.for("AuthController"),
 
-    RevokedTokenRepository: Symbol.for("RevokedTokenRepository"),
-
     SessionRepository: Symbol.for("SessionRepository"),
     SecurityController: Symbol.for("SecurityController"),
 

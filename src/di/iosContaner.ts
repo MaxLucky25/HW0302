@@ -17,7 +17,6 @@ import { CommentRepository } from "../repositories/commentRepository";
 import {CommentService} from "../services/commentService";
 import {BcryptService} from "../services/bcryptService";
 import {EmailService} from "../services/emailService";
-import {RevokedTokenRepository} from "../repositories/revokedTokenRepository";
 import {JwtService} from "../services/jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {AuthService} from "../services/authService";
@@ -55,8 +54,6 @@ container.bind<CommentService>(TYPES.CommentService).to(CommentService);
 container.bind<BcryptService>(TYPES.BcryptService).to(BcryptService);
 
 container.bind<EmailService>(TYPES.EmailService).to(EmailService);
-
-container.bind<RevokedTokenRepository>(TYPES.RevokedTokenRepository).to(RevokedTokenRepository);
 
 container.bind<JwtService>(TYPES.JwtService).to(JwtService);
 

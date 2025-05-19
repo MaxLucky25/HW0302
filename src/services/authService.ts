@@ -3,7 +3,6 @@ import { add } from "date-fns";
 import {BcryptService} from "./bcryptService";
 import {UserRepository} from "../repositories/userRepository";
 import {EmailService} from "./emailService";
-import {RevokedTokenRepository} from '../repositories/revokedTokenRepository';
 import {JwtService} from "./jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
@@ -20,7 +19,6 @@ export class AuthService {
        @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
        @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
        @inject(TYPES.EmailService) private emailService: EmailService,
-       @inject(TYPES.RevokedTokenRepository) private revokedTokenRepository: RevokedTokenRepository,
        @inject(TYPES.JwtService) private jwtService: JwtService,
     ) {}
     async login(loginOrEmail: string, password: string,  ip: string, title: string):
@@ -58,8 +56,6 @@ export class AuthService {
     }
 
     async refreshTokens(refreshToken: string, ip: string, title: string) {
-        const isRevoked = await this.revokedTokenRepository.isRevoked(refreshToken);
-        if (isRevoked) return null;
 
         const payload = this.jwtService.verifyRefreshToken(refreshToken);
         if (!payload || !payload.userId || !payload.deviceId || !payload.lastActiveDate) return null;
@@ -77,13 +73,15 @@ export class AuthService {
             ip,
             title
         );
-        await this.revokeRefreshToken(refreshToken);
 
         const newPayload = {
             userId: payload.userId,
             deviceId: payload.deviceId,
             lastActiveDate: newLastActiveDate
         };
+
+        const user = await this.userQueryRepository.getById(payload.userId);
+        if (!user) return null;
 
         return {
             accessToken: this.jwtService.createAccessToken({
@@ -95,12 +93,6 @@ export class AuthService {
         };
     }
 
-    async revokeRefreshToken(refreshToken: string): Promise<void> {
-        const expiresAt = this.jwtService.getRefreshTokenExpiry(refreshToken);
-        if (expiresAt) {
-            await this.revokedTokenRepository.add(refreshToken, expiresAt);
-        }
-    }
 
     async register(login: string, password: string, email: string) {
         if (await this.userRepository.doesExistByLoginOrEmail(login, email)) {

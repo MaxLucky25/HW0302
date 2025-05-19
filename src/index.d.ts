@@ -3,7 +3,8 @@
 declare global {
     namespace Express {
         export interface Request {
-            userId: string | null;
+            userId?: string | null;
+            deviceId?: string ;
             userLogin?: string;
             userEmail?: string;
             refreshToken?: string;

@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../utility/config';
-import {RevokedTokenRepository} from '../repositories/revokedTokenRepository';
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
+import {SessionRepository} from "../repositories/sessionRepository";
 
 @injectable()
 export class AuthRefreshTokenMiddleware {
     constructor(
-        @inject(TYPES.RevokedTokenRepository)private revokedTokenRepository: RevokedTokenRepository,
+        @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
     ) {}
 
     execute = async (req: Request, res: Response, next: NextFunction) => {
@@ -22,16 +22,15 @@ export class AuthRefreshTokenMiddleware {
         try {
             const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as JwtPayload;
 
-            const isRevoked = await this.revokedTokenRepository.isRevoked(refreshToken);
-            if (isRevoked) {
+            const session = await this.sessionRepository.findByDeviceId(decoded.deviceId);
+            if (!session || session.lastActiveDate !== decoded.lastActiveDate) {
                 res.sendStatus(401);
                 return;
             }
 
             // Добавим все поля как и в authJwtMiddleware
             req.userId = decoded.userId;
-            req.userLogin = decoded.login;
-            req.userEmail = decoded.email;
+            req.deviceId = decoded.deviceId;
             req.refreshToken = refreshToken;
 
             next();
