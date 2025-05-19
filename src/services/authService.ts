@@ -9,23 +9,24 @@ import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {UserEntity} from "../domain/userEntity";
+import {UserQueryRepository} from "../queryRepo/userQueryRepository";
+
 
 @injectable()
 export class AuthService {
     constructor(
        @inject(TYPES.BcryptService) private bcryptService: BcryptService,
        @inject(TYPES.UserRepository) private userRepository: UserRepository,
+       @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
        @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
        @inject(TYPES.EmailService) private emailService: EmailService,
        @inject(TYPES.RevokedTokenRepository) private revokedTokenRepository: RevokedTokenRepository,
        @inject(TYPES.JwtService) private jwtService: JwtService,
-
-
     ) {}
     async login(loginOrEmail: string, password: string,  ip: string, title: string):
         Promise<{ accessToken: string, refreshToken: string } | null> {
 
-        const user = await this.userRepository.getByLoginOrEmail(loginOrEmail);
+        const user = await this.userQueryRepository.getByLoginOrEmail(loginOrEmail);
         if (!user || !user.emailConfirmation.isConfirmed) return null;
 
         const isValid = await this.bcryptService.compareHash(password, user.password);
@@ -34,7 +35,7 @@ export class AuthService {
 
         const deviceId = randomUUID();
         const lastActiveDate = new Date().toISOString();
-        const expiresDate = add(new Date(), { days: 7 }).toISOString(); // или согласно config
+        const expiresDate = add(new Date(), { days: 7 }).toISOString();
 
         const payload = { userId: user.id, deviceId, lastActiveDate };
 
@@ -67,7 +68,7 @@ export class AuthService {
         if (!session || session.lastActiveDate !== payload.lastActiveDate) return null;
 
         const newLastActiveDate = new Date().toISOString();
-        const newExpiresDate = add(new Date(), { days: 7 }).toISOString();
+        const newExpiresDate = add(new Date(), {days: 7 }).toISOString();
 
         await this.sessionRepository.updateLastActiveDate(
             payload.deviceId,
@@ -134,7 +135,7 @@ export class AuthService {
     }
 
     async confirm(code: string): Promise<boolean> {
-        const user = await this.userRepository.findByConfirmationCode(code);
+        const user = await this.userQueryRepository.findByConfirmationCode(code);
         if (!user || user.emailConfirmation.isConfirmed || user.emailConfirmation.expirationDate < new Date()) {
             return false;
         }
@@ -143,7 +144,7 @@ export class AuthService {
     }
 
     async resendEmail(email: string): Promise<string | null> {
-        const user = await this.userRepository.getByEmail(email);
+        const user = await this.userQueryRepository.getByEmail(email);
         if (!user || user.emailConfirmation.isConfirmed) return null;
 
         const newConfirmation = generateConfirmation();
@@ -155,11 +156,11 @@ export class AuthService {
     }
 
     async sendPasswordRecoveryCode(email: string): Promise<boolean> {
-        const user = await this.userRepository.getByEmail(email);
+        const user = await this.userQueryRepository.getByEmail(email);
         if (!user || !user.emailConfirmation.isConfirmed) return false;
 
         const recoveryCode = randomUUID();
-        const expirationDate = add(new Date(), { hours: 1 });
+        const expirationDate = add(new Date(), { minutes: 1 });
 
         const updated = await this.userRepository.updateRecovery(user.id, {
             recoveryCode,
@@ -172,7 +173,7 @@ export class AuthService {
     }
 
     async confirmNewPassword(newPassword: string, recoveryCode: string): Promise<boolean> {
-        const user = await this.userRepository.getByRecoveryCode(recoveryCode);
+        const user = await this.userQueryRepository.getByRecoveryCode(recoveryCode);
         if (
             !user ||
             !user.passwordRecovery?.recoveryCode ||

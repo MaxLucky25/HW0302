@@ -2,8 +2,8 @@ import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {BlogService} from "../services/blogService";
 import { Request, Response } from 'express';
-import { BlogQueryRepository } from "../repositories/blogQueryRepository";
-import { PostQueryRepository } from "../repositories/postQueryRepository";
+import { BlogQueryRepository } from "../queryRepo/blogQueryRepository";
+import { PostQueryRepository } from "../queryRepo/postQueryRepository";
 
 @injectable()
 export class BlogController {

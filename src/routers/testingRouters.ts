@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import {BlogModel} from "../infrastructure/blogSchema";
-import { PostModel } from '../infrastructure/postSchema';
-import {UserModel} from "../infrastructure/userSchema";
-import { CommentModel } from '../infrastructure/commentSchema';
-import { RevokedTokenModel } from '../infrastructure/revokedScheme';
-import {SessionModel} from "../infrastructure/sessionSchema";
-import { RequestLogModel } from '../infrastructure/requestLogSchema';
+import { BlogModel } from '../models/blogModel';
+import {CommentModel} from "../models/commentModels";
+import { PostModel } from '../models/postModels';
+import {RequestLogModel} from "../models/requestLogModel";
+import {SessionModel} from "../models/sessionModel";
+import { UserModel } from '../models/userModel';
+import { RevokedTokenModel } from '../models/revokedTokenModel';
 
 
 export const testingRouters = Router();

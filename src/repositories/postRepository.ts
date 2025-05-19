@@ -1,8 +1,7 @@
-import {PostDto, PostViewModel } from '../models/postModels';
+import {PostDto, PostModel, PostViewModel} from '../models/postModels';
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
-import {PostModel} from "../infrastructure/postSchema";
-import {BlogQueryRepository} from "./blogQueryRepository";
+import {BlogQueryRepository} from "../queryRepo/blogQueryRepository";
 
 @injectable()
 export class PostRepository {

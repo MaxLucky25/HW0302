@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import config from "../utility/config";
-import {RequestLogModel} from "../infrastructure/requestLogSchema";
+import {RequestLogModel} from "../models/requestLogModel";
+
 
 
 export const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {

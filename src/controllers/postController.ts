@@ -3,7 +3,8 @@ import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {PostService} from "../services/postService";
 import {CommentService} from "../services/commentService";
-import {PostQueryRepository} from "../repositories/postQueryRepository";
+import {PostQueryRepository} from "../queryRepo/postQueryRepository";
+import {CommentQueryRepository} from "../queryRepo/commentQueryRepository";
 
 
 
@@ -12,6 +13,7 @@ export class PostController {
     constructor(
         @inject(TYPES.PostService) private postService: PostService,
         @inject(TYPES.PostQueryRepository) private postQueryRepository: PostQueryRepository,
+        @inject(TYPES.CommentQueryRepository) private commentQueryRepository: CommentQueryRepository,
         @inject(TYPES.CommentService) private commentService: CommentService,
     ) {}
 
@@ -50,13 +52,13 @@ export class PostController {
         if (newComment) {
             res.status(201).json(newComment);
         } else {
-            res.sendStatus(404); // если пост не найден
+            res.sendStatus(404);
         }
     }
 
     getCommentsByPostId = async (req: Request, res: Response) => {
         const { postId } = req.params;
-        const comments = await this.commentService.getCommentsByPostId(postId, req.query);
+        const comments = await this.commentQueryRepository.getCommentsByPostId(postId, req.query);
         if (comments === null) {
             res.sendStatus(404);
         } else {

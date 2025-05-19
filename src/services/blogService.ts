@@ -1,9 +1,10 @@
 import {BlogRepository} from "../repositories/blogRepository";
-import {BlogDto} from "../models/blogModels";
 import {inputPostDto, PostDto} from "../models/postModels";
 import {PostRepository} from "../repositories/postRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
+import {BlogDto} from "../models/blogModel";
+
 
 @injectable()
 export class BlogService  {

@@ -1,6 +1,6 @@
-import {BlogDto, BlogViewModel} from '../models/blogModels';
 import {injectable} from "inversify";
-import {BlogModel} from "../infrastructure/blogSchema";
+import { BlogDto, BlogModel, BlogViewModel } from "../models/blogModel";
+
 
 @injectable()
 export class BlogRepository  {

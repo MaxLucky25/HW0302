@@ -1,5 +1,5 @@
 import {UserRepository} from '../repositories/userRepository';
-import {UserQueryRepository} from '../repositories/userQueryRepository';
+import {UserQueryRepository} from '../queryRepo/userQueryRepository';
 import {CreateUserDto} from '../models/userModel';
 import {inject, injectable } from 'inversify';
 import TYPES from '../di/types';

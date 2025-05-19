@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import {model, Schema} from "mongoose";
 
 export type CommentDBType = {
     _id?: ObjectId;
@@ -14,10 +15,19 @@ export type CommentDBType = {
 
 export type CommentViewModel = Omit<CommentDBType, '_id' | 'postId'>;
 
-export type CreateCommentDto = {
+export type CommentDto = {
     content: string;
 };
 
-export type UpdateCommentDto = {
-    content: string;
-};
+const commentSchema = new Schema<CommentDBType>({
+    id: { type: String, required: true, unique: true },
+    content: { type: String, required: true },
+    commentatorInfo: {
+        userId: { type: String, required: true },
+        userLogin: { type: String, required: true },
+    },
+    postId: { type: String, required: true },
+    createdAt: { type: Date, required: true },
+});
+
+export const CommentModel = model<CommentDBType>('Comment', commentSchema);

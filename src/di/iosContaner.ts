@@ -5,11 +5,11 @@ import {BlogService} from "../services/blogService";
 import {UserService} from "../services/userService";
 import {UserController} from "../controllers/userController";
 import {BlogRepository} from "../repositories/blogRepository";
-import {BlogQueryRepository} from "../repositories/blogQueryRepository";
+import {BlogQueryRepository} from "../queryRepo/blogQueryRepository";
 import {UserRepository} from "../repositories/userRepository";
-import {UserQueryRepository} from "../repositories/userQueryRepository";
+import {UserQueryRepository} from "../queryRepo/userQueryRepository";
 import {PostRepository} from "../repositories/postRepository";
-import {PostQueryRepository} from "../repositories/postQueryRepository";
+import {PostQueryRepository} from "../queryRepo/postQueryRepository";
 import {PostService} from "../services/postService";
 import {PostController} from "../controllers/postController";
 import {CommentController} from "../controllers/commentController";
@@ -26,6 +26,7 @@ import {SecurityController} from "../controllers/securityController";
 import {AuthValidator} from "../validators/authValidators";
 import {PostValidator} from "../validators/postValidators";
 import {AuthRefreshTokenMiddleware} from "../middlewares/authRefreshTokenMiddleware";
+import { CommentQueryRepository } from "../queryRepo/commentQueryRepository";
 
 
 
@@ -48,6 +49,7 @@ container.bind<PostController>(TYPES.PostController).to(PostController);
 
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
 container.bind<CommentRepository>(TYPES.CommentRepository).to(CommentRepository);
+container.bind<CommentQueryRepository>(TYPES.CommentQueryRepository).to(CommentQueryRepository);
 container.bind<CommentService>(TYPES.CommentService).to(CommentService);
 
 container.bind<BcryptService>(TYPES.BcryptService).to(BcryptService);

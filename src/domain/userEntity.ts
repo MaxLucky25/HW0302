@@ -1,4 +1,4 @@
-import { UserDBType} from "../models/userModel";
+import {UserDBType, UserViewModel} from "../models/userModel";
 
 export class UserEntity {
     constructor(private data: UserDBType) {}
@@ -12,16 +12,18 @@ export class UserEntity {
     get passwordRecovery() { return this.data.passwordRecovery; }
 
 
-    toObject(): UserDBType {
-        return { ...this.data };
-    }
 
-    toViewModel() {
+
+    toViewModel():UserViewModel {
         return {
             id: this.data.id,
             login: this.data.login,
             email: this.data.email,
             createdAt: this.data.createdAt,
         };
+    }
+
+    toObject(): UserDBType {
+        return { ...this.data };
     }
 }

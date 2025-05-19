@@ -1,5 +1,6 @@
 import {injectable} from "inversify";
-import {RevokedTokenModel} from "../infrastructure/revokedScheme";
+import { RevokedTokenModel } from "../models/revokedTokenModel";
+
 
 @injectable()
 export class RevokedTokenRepository  {

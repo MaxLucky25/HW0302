@@ -1,7 +1,7 @@
 import {body, ValidationChain} from 'express-validator';
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
-import {BlogQueryRepository} from "../repositories/blogQueryRepository";
+import {BlogQueryRepository} from "../queryRepo/blogQueryRepository";
 
 
 @injectable()

@@ -16,6 +16,7 @@ const TYPES ={
 
     CommentService: Symbol.for("CommentService"),
     CommentRepository: Symbol.for("CommentRepository"),
+    CommentQueryRepository: Symbol.for("CommentQueryRepository"),
     CommentController: Symbol.for("CommentController"),
 
     AuthService: Symbol.for("AuthService"),

@@ -3,8 +3,8 @@ import {inject, injectable} from "inversify";
 import {AuthService} from "../services/authService";
 import TYPES from "../di/types";
 import {JwtService} from "../services/jwtService";
-import {UserRepository} from "../repositories/userRepository";
 import {SessionRepository} from "../repositories/sessionRepository";
+import {UserQueryRepository} from "../queryRepo/userQueryRepository";
 
 
 @injectable()
@@ -12,7 +12,7 @@ export class AuthController {
     constructor(
         @inject(TYPES.AuthService) private  authService: AuthService,
         @inject(TYPES.JwtService) private jwtService: JwtService,
-        @inject(TYPES.UserRepository) private userRepository: UserRepository,
+        @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
         @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
     ) {}
 
@@ -117,7 +117,7 @@ export class AuthController {
 
     getMe = async (req: Request, res: Response) => {
         const userId = req.userId!;
-        const user = await this.userRepository.getById(userId);
+        const user = await this.userQueryRepository.getById(userId);
         if (!user){
             res.sendStatus(401);
             return;

@@ -1,5 +1,4 @@
-import { PostModel } from '../infrastructure/postSchema';
-import { PostViewModel } from '../models/postModels';
+import {PostModel, PostViewModel } from '../models/postModels';
 import { getPaginationParams } from '../utility/commonPagination';
 import {injectable} from "inversify";
 

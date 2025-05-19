@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import {RequestLogModel} from "../infrastructure/requestLogSchema";
+import {RequestLogModel} from "../models/requestLogModel";
 
 
 export const logRequestMiddleware = async (req: Request, res: Response, next: NextFunction) => {

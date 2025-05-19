@@ -2,17 +2,19 @@ import {Response, Request} from "express";
 import {inject, injectable } from "inversify";
 import TYPES from "../di/types";
 import {CommentService} from "../services/commentService";
+import {CommentQueryRepository} from "../queryRepo/commentQueryRepository";
 
 @injectable()
 export class CommentController {
     constructor(
         @inject(TYPES.CommentService) private commentService: CommentService,
+        @inject(TYPES.CommentQueryRepository) private commentQueryRepository: CommentQueryRepository,
     ) {}
 
     updateComment = async (req: Request, res: Response) => {
         const { commentId } = req.params;
         const userId = req.userId!;
-        const comment = await this.commentService.getCommentById(commentId);
+        const comment = await this.commentQueryRepository.getCommentById(commentId);
         if (!comment) {
             res.sendStatus(404);
             return;
@@ -29,7 +31,7 @@ export class CommentController {
     deleteComment = async (req: Request, res: Response) => {
         const { commentId } = req.params;
         const userId = req.userId!;
-        const comment = await this.commentService.getCommentById(commentId);
+        const comment = await this.commentQueryRepository.getCommentById(commentId);
         if (!comment) {
             res.sendStatus(404);
             return;
@@ -44,7 +46,7 @@ export class CommentController {
 
     getCommentById = async (req: Request, res: Response) => {
         const { id } = req.params;
-        const comment = await this.commentService.getCommentById(id);
+        const comment = await this.commentQueryRepository.getCommentById(id);
         if (comment) {
             res.status(200).json(comment);
         } else {

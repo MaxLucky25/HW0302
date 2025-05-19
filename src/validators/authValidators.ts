@@ -1,13 +1,13 @@
 import {body, ValidationChain} from 'express-validator';
-import {UserRepository} from '../repositories/userRepository';
 import {inject, injectable} from "inversify";
 import TYPES from '../di/types';
+import {UserQueryRepository} from "../queryRepo/userQueryRepository";
 
 
 @injectable()
 export class AuthValidator {
     constructor(
-        @inject(TYPES.UserRepository) private userRepository: UserRepository,
+        @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
     ) {
     }
 
@@ -31,7 +31,7 @@ export class AuthValidator {
                 .isLength({min: 3, max: 10}).withMessage('Login must be between 3 and 10 characters')
                 .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login contains invalid characters')
                 .custom(async (login) => {
-                    const user = await this.userRepository.getByLogin(login);
+                    const user = await this.userQueryRepository.getByLogin(login);
                     if (user) {
                         throw new Error('Login already exists');
                     }
@@ -48,7 +48,7 @@ export class AuthValidator {
                 .isEmail().withMessage('Invalid email format')
                 .custom(async (email) => {
                     // 🔧 Проверка существования email
-                    const user = await this.userRepository.getByEmail(email);
+                    const user = await this.userQueryRepository.getByEmail(email);
                     if (user) {
                         throw new Error('Email already exists');
                     }
@@ -64,7 +64,7 @@ export class AuthValidator {
             .isString().withMessage('Code must be a string')
             .notEmpty().withMessage('Code is required')
             .custom(async (code) => {
-                const user = await this.userRepository.findByConfirmationCode(code);
+                const user = await this.userQueryRepository.findByConfirmationCode(code);
                 if (!user) {
                     throw new Error('Incorrect, expired, or already confirmed code');
                 }
@@ -87,7 +87,7 @@ export class AuthValidator {
                 .trim()
                 .isEmail().withMessage('Invalid email format')
                 .custom(async (email) => {
-                    const user = await this.userRepository.getByEmail(email);
+                    const user = await this.userQueryRepository.getByEmail(email);
                     if (!user) {
                         throw new Error('User not found');
                     }
@@ -116,7 +116,7 @@ export class AuthValidator {
                 .isString().withMessage('Recovery code must be a string')
                 .notEmpty().withMessage('Recovery code is required')
                 .custom(async (code) => {
-                    const user = await this.userRepository.getByRecoveryCode(code);
+                    const user = await this.userQueryRepository.getByRecoveryCode(code);
                     if (!user) {
                         throw new Error('Incorrect or expired recovery code');
                     }

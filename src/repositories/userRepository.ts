@@ -1,32 +1,12 @@
-import { injectable } from 'inversify';
+import {injectable} from 'inversify';
 import { UserEntity } from '../domain/userEntity';
-import { UserModel } from '../infrastructure/userSchema';
 import {randomUUID} from "crypto";
-import {CreateUserDto} from "../models/userModel";
+import {CreateUserDto, UserModel} from "../models/userModel";
 import bcrypt from "bcryptjs";
 
 
 @injectable()
 export class UserRepository {
-
-    async getById(id: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ id }).lean();
-        return doc ? new UserEntity(doc) : null;
-    }
-
-    async getByLogin(login: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ login }).lean();
-        return doc ? new UserEntity(doc) : null;
-    }
-
-    async getByEmail(email: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ email }).lean();
-        return doc ? new UserEntity(doc) : null;
-    }
-
-    async getByLoginOrEmail(value: string): Promise<UserEntity | null> {
-        return await this.getByLogin(value) ?? await this.getByEmail(value);
-    }
 
     async doesExistByLoginOrEmail(login: string, email: string): Promise<boolean> {
         const count = await UserModel.countDocuments({ $or: [{ login }, { email }] });
@@ -64,17 +44,23 @@ export class UserRepository {
     }
 
     async updateConfirmation(idOrEmail: string, update: any): Promise<boolean> {
-        const result = await UserModel.updateOne(
-            { $or: [{ id: idOrEmail }, { email: idOrEmail }] },
-            { $set: { 'emailConfirmation': update } }
-        );
-        return result.modifiedCount === 1;
+        const user = await UserModel.findOne({ $or: [{ id: idOrEmail }, { email: idOrEmail }] });
+        if (!user) return false;
+
+        if (update.confirmationCode !== undefined) {
+            user.emailConfirmation.confirmationCode = update.confirmationCode;
+        }
+        if (update.expirationDate !== undefined) {
+            user.emailConfirmation.expirationDate = update.expirationDate;
+        }
+        if (update.isConfirmed !== undefined) {
+            user.emailConfirmation.isConfirmed = update.isConfirmed;
+        }
+
+        await user.save();
+        return true;
     }
 
-    async findByConfirmationCode(code: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code }).lean();
-        return doc ? new UserEntity(doc) : null;
-    }
 
     async updateRecovery(userId: string, recovery: { recoveryCode: string, expirationDate: Date }): Promise<boolean> {
         const user = await UserModel.findOne({id:userId});
@@ -87,10 +73,6 @@ export class UserRepository {
         return true;
     }
 
-    async getByRecoveryCode(code: string): Promise<UserEntity | null> {
-        const user = await UserModel.findOne({ "passwordRecovery.recoveryCode": code }).lean();
-        return user ? new UserEntity(user) : null;
-    }
 
     async updatePassword(userId: string, newHashedPassword: string): Promise<boolean> {
         const user = await UserModel.findOne({id:userId});
