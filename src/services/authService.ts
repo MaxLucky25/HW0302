@@ -7,24 +7,24 @@ import {JwtService} from "./jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
-import {UserEntity} from "../domain/userEntity";
-import {UserQueryRepository} from "../queryRepo/userQueryRepository";
+import {UserModel} from "../models/userModel";
 
 
 @injectable()
 export class AuthService {
     constructor(
-       @inject(TYPES.BcryptService) private bcryptService: BcryptService,
-       @inject(TYPES.UserRepository) private userRepository: UserRepository,
-       @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
-       @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
-       @inject(TYPES.EmailService) private emailService: EmailService,
-       @inject(TYPES.JwtService) private jwtService: JwtService,
+        @inject(TYPES.BcryptService) private bcryptService: BcryptService,
+        @inject(TYPES.UserRepository) private userRepository: UserRepository,
+        @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
+        @inject(TYPES.EmailService) private emailService: EmailService,
+        @inject(TYPES.JwtService) private jwtService: JwtService,
     ) {}
     async login(loginOrEmail: string, password: string,  ip: string, title: string):
         Promise<{ accessToken: string, refreshToken: string } | null> {
 
-        const user = await this.userQueryRepository.getByLoginOrEmail(loginOrEmail);
+        const user = await UserModel.findOne({
+            $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
+        });
         if (!user || !user.emailConfirmation.isConfirmed) return null;
 
         const isValid = await this.bcryptService.compareHash(password, user.password);
@@ -80,7 +80,7 @@ export class AuthService {
             lastActiveDate: newLastActiveDate
         };
 
-        const user = await this.userQueryRepository.getById(payload.userId);
+        const user = await UserModel.findOne({ id: payload.userId });
         if (!user) return null;
 
         return {
@@ -98,26 +98,14 @@ export class AuthService {
         if (await this.userRepository.doesExistByLoginOrEmail(login, email)) {
             return null;
         }
-
-        const user = new UserEntity({
-            id: Date.now().toString(),
-            login,
-            email,
-            password: await this.bcryptService.generateHash(password),
-            createdAt: new Date().toISOString(),
-            emailConfirmation: {
-                confirmationCode: randomUUID(),
-                expirationDate: add(new Date(), { hours: 1 }),
-                isConfirmed: false
-            },
-            passwordRecovery: {
-                recoveryCode: randomUUID(),
-                expirationDate: new Date(),
-                isConfirmed: false
-            }
+        const hashedPassword = await this.bcryptService.generateHash(password);
+        const user = await UserModel.createUser({
+            login: login,
+            password: hashedPassword,
+            email: email,
+            isConfirmed: false,
         });
 
-        await this.userRepository.insert(user);
         await this.emailService.sendRegistrationEmail(email, user.emailConfirmation.confirmationCode);
 
         return {
@@ -127,7 +115,7 @@ export class AuthService {
     }
 
     async confirm(code: string): Promise<boolean> {
-        const user = await this.userQueryRepository.findByConfirmationCode(code);
+        const user = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
         if (!user || user.emailConfirmation.isConfirmed || user.emailConfirmation.expirationDate < new Date()) {
             return false;
         }
@@ -136,10 +124,14 @@ export class AuthService {
     }
 
     async resendEmail(email: string): Promise<string | null> {
-        const user = await this.userQueryRepository.getByEmail(email);
+        const user = await UserModel.findOne({ email });
         if (!user || user.emailConfirmation.isConfirmed) return null;
 
-        const newConfirmation = generateConfirmation();
+        const newConfirmation = {
+            confirmationCode: randomUUID(),
+            expirationDate: add(new Date(), { hours: 1 }),
+            isConfirmed: false
+        };
         const updated = await this.userRepository.updateConfirmation(user.id, newConfirmation);
         if (!updated) return null;
 
@@ -148,7 +140,7 @@ export class AuthService {
     }
 
     async sendPasswordRecoveryCode(email: string): Promise<boolean> {
-        const user = await this.userQueryRepository.getByEmail(email);
+        const user = await UserModel.findOne({ email });
         if (!user || !user.emailConfirmation.isConfirmed) return false;
 
         const recoveryCode = randomUUID();
@@ -165,7 +157,7 @@ export class AuthService {
     }
 
     async confirmNewPassword(newPassword: string, recoveryCode: string): Promise<boolean> {
-        const user = await this.userQueryRepository.getByRecoveryCode(recoveryCode);
+        const user = await UserModel.findOne({ 'passwordRecovery.recoveryCode': recoveryCode });
         if (
             !user ||
             !user.passwordRecovery?.recoveryCode ||
@@ -179,12 +171,3 @@ export class AuthService {
 
 
 }
-
-function generateConfirmation() {
-    return {
-        confirmationCode: randomUUID(),
-        expirationDate: add(new Date(), { hours: 1, minutes: 30 }),
-        isConfirmed: false,
-    };
-}
-

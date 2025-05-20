@@ -9,7 +9,6 @@ export class PostService {
         @inject(TYPES.PostRepository) private postRepository: PostRepository,
     ) {}
 
-
     async createPost(input: PostDto) {
         return await this.postRepository.create(input);
     }

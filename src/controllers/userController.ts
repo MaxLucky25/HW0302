@@ -2,16 +2,18 @@ import { Request, Response } from 'express';
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {UserService} from "../services/userService";
+import {UserQueryRepository} from "../queryRepo/userQueryRepository";
 
 
 @injectable()
 export class UserController {
     constructor(
-        @inject(TYPES.UserService) private userService: UserService
+        @inject(TYPES.UserService) private userService: UserService,
+        @inject(TYPES.UserQueryRepository)private userQueryRepository: UserQueryRepository,
     ) {}
 
     getUsers = async (req:Request, res: Response) => {
-        const result = await this.userService.getUsers(req.query);
+        const result = await this.userQueryRepository.getUsers(req.query);
         res.status(200).json(result);
     };
 

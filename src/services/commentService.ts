@@ -2,13 +2,13 @@ import {CommentRepository} from "../repositories/commentRepository";
 import {CommentViewModel, CommentDto} from "../models/commentModels";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
-import {PostQueryRepository} from "../queryRepo/postQueryRepository";
+import {PostRepository} from "../repositories/postRepository";
 
 @injectable()
 export class CommentService  {
     constructor(
         @inject(TYPES.CommentRepository) private commentRepository: CommentRepository,
-        @inject(TYPES.PostQueryRepository) private postQueryRepository: PostQueryRepository,
+        @inject(TYPES.PostRepository) private postRepository: PostRepository,
     ) {
     }
 
@@ -16,7 +16,7 @@ export class CommentService  {
         userId: string;
         userLogin: string
     }): Promise<CommentViewModel | null> {
-        const post = await this.postQueryRepository.getById(postId);
+        const post = await this.postRepository.getById(postId);
         if (!post) return null;
 
         return await this.commentRepository.create(postId, input, commentatorInfo);

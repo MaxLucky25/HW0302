@@ -1,6 +1,6 @@
 import {CommentViewModel, CommentDto, CommentModel } from '../models/commentModels';
 import {injectable} from "inversify";
-import { CommentEntity } from '../domain/commentEntity';
+
 
 @injectable()
 export class CommentRepository  {
@@ -8,16 +8,14 @@ export class CommentRepository  {
                  input: CommentDto,
                  commentatorInfo: { userId: string; userLogin: string }
     ): Promise<CommentViewModel> {
-        const entity = CommentEntity.create({
-            content:input.content,
+        const comment = CommentModel.createComment({
+            content: input.content,
             postId,
             commentatorInfo,
         });
 
-        const model = new CommentModel(entity.toObject());
-        await model.save();
-
-        return entity.getViewModel()
+        await comment.save();
+        return comment.toViewModel();
     }
 
     async update(id: string, input: CommentDto): Promise<boolean> {
@@ -26,7 +24,6 @@ export class CommentRepository  {
 
         comment.content = input.content;
         await comment.save();
-
         return true;
     }
 

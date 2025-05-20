@@ -1,5 +1,6 @@
-import {ObjectId} from "mongodb";
-import {model, Schema} from "mongoose";
+import { ObjectId } from "mongodb";
+import { model, Schema, Document, Model } from "mongoose";
+import { randomUUID } from "crypto";
 
 export type EmailConfirmationType = {
     confirmationCode: string;
@@ -13,7 +14,6 @@ export type PasswordRecoveryType = {
     isConfirmed: boolean;
 };
 
-
 export type UserDBType = {
     _id?: ObjectId;
     id: string;
@@ -23,30 +23,50 @@ export type UserDBType = {
     createdAt: string;
     emailConfirmation: EmailConfirmationType;
     passwordRecovery: PasswordRecoveryType;
-
 };
 
-export type UserViewModel ={
+export type UserViewModel = {
     id: string;
     login: string;
     email: string;
     createdAt: string;
-}
+};
+
 export type CreateUserDto = Pick<UserDBType, 'login' | 'password' | 'email'>;
 
-const EmailConfirmationSchema = new Schema({
+interface IUserDocument extends Document {
+    id: string;
+    login: string;
+    password: string;
+    email: string;
+    createdAt: string;
+    emailConfirmation: EmailConfirmationType;
+    passwordRecovery: PasswordRecoveryType;
+    toViewModel(): UserViewModel;
+}
+
+interface IUserModelStatic extends Model<IUserDocument> {
+    createUser(data: {
+        login: string;
+        password: string;
+        email: string;
+        isConfirmed?: boolean;
+    }): Promise<IUserDocument>;
+}
+
+const EmailConfirmationSchema = new Schema<EmailConfirmationType>({
     confirmationCode: { type: String, required: true },
     expirationDate: { type: Date, required: true },
     isConfirmed: { type: Boolean, required: true },
 }, { _id: false });
 
-const PasswordRecoverySchema = new Schema({
+const PasswordRecoverySchema = new Schema<PasswordRecoveryType>({
     recoveryCode: { type: String, required: true },
     expirationDate: { type: Date, required: true },
     isConfirmed: { type: Boolean, required: true },
 }, { _id: false });
 
-const UserSchema = new Schema<UserDBType>({
+const UserSchema = new Schema<IUserDocument>({
     id: { type: String, required: true, unique: true },
     login: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
@@ -56,4 +76,35 @@ const UserSchema = new Schema<UserDBType>({
     passwordRecovery: { type: PasswordRecoverySchema, required: true },
 });
 
-export const UserModel = model<UserDBType>('User', UserSchema);
+UserSchema.methods.toViewModel = function (): UserViewModel {
+    return {
+        id: this.id,
+        login: this.login,
+        email: this.email,
+        createdAt: this.createdAt
+    };
+};
+
+UserSchema.statics.createUser = function ({login, password, email, isConfirmed = false
+}): Promise<IUserDocument> {
+    const user = new this({
+        id: randomUUID(),
+        login,
+        email,
+        password,
+        createdAt: new Date().toISOString(),
+        emailConfirmation: {
+            confirmationCode: randomUUID(),
+            expirationDate: new Date(new Date().getTime() + 3600 * 1000),
+            isConfirmed
+        },
+        passwordRecovery: {
+            recoveryCode: randomUUID(),
+            expirationDate: new Date(),
+            isConfirmed: false
+        }
+    });
+    return user.save();
+};
+
+export const UserModel = model<IUserDocument, IUserModelStatic>('User', UserSchema);

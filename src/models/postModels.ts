@@ -1,5 +1,6 @@
 import {ObjectId} from "mongodb";
-import {model, Schema} from "mongoose";
+import {Model, model, Schema} from "mongoose";
+import {randomUUID} from "crypto";
 
 export type PostDBType = {
     _id?: ObjectId;
@@ -27,18 +28,29 @@ export type inputPostDto = {
     content: string;
 }
 
-export interface PostDocument extends Document, PostDBType {
+interface IPostDocument extends Document, PostDBType {
     toViewModel(): PostViewModel;
 }
 
-const PostSchema = new Schema<PostDocument>({
+interface IPostModelStatic extends Model<IPostDocument> {
+    createPost(data:{
+        title: string;
+        shortDescription: string;
+        content: string;
+        blogId: string;
+        blogName: string;
+    }): Promise<IPostDocument>;
+}
+
+
+const PostSchema = new Schema<IPostDocument>({
     id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     shortDescription: { type: String, required: true },
     content: { type: String, required: true },
     blogId: { type: String, required: true },
     blogName: { type: String, required: true },
-    createdAt: { type: Date, required: true },
+    createdAt: { type: Date, required: true, default: Date.now },
 });
 
 PostSchema.methods.toViewModel = function () :PostViewModel {
@@ -50,8 +62,23 @@ PostSchema.methods.toViewModel = function () :PostViewModel {
         blogId: this.blogId,
         blogName:this.blogName,
         createdAt: this.createdAt,
-    }
+    };
+};
+
+PostSchema.statics.createPost = function
+({title, shortDescription, content, blogId, blogName})
+    :Promise<IPostDocument> {
+    const post = new this({
+        id: randomUUID(),
+        title,
+        shortDescription,
+        content,
+        blogId,
+        blogName,
+        createdAt: new Date(),
+    });
+    return post.save();
 }
 
-export const PostModel = model<PostDocument>('Post', PostSchema);
+export const PostModel = model<IPostDocument, IPostModelStatic>('Post', PostSchema);
 

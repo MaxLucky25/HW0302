@@ -6,16 +6,12 @@ import { BlogDto, BlogModel, BlogViewModel } from "../models/blogModel";
 export class BlogRepository  {
 
     async create(input: BlogDto): Promise<BlogViewModel> {
-        const newBlog = new BlogModel({
-            id: Date.now().toString(),
+        const newBlog = await BlogModel.createBlog({
             name: input.name,
             description: input.description,
             websiteUrl: input.websiteUrl,
-            createdAt: new Date(),
-            isMembership: false,
         });
 
-        await newBlog.save();
         return newBlog.toViewModel();
 
     }

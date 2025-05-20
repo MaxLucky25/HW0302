@@ -1,5 +1,4 @@
 import {injectable} from 'inversify';
-import { UserEntity } from '../domain/userEntity';
 import {randomUUID} from "crypto";
 import {CreateUserDto, UserModel} from "../models/userModel";
 import bcrypt from "bcryptjs";
@@ -17,31 +16,18 @@ export class UserRepository {
         const exists = await this.doesExistByLoginOrEmail(dto.login, dto.email);
         if (exists) return null;
 
-        const newUser = new UserEntity({
-            id: randomUUID(),
+        const hashedPassword = await bcrypt.hash(dto.password, 10);
+        const user = await UserModel.createUser({
             login: dto.login,
+            password: hashedPassword,
             email: dto.email,
-            password: await bcrypt.hash(dto.password, 10),
-            createdAt: new Date().toISOString(),
-            emailConfirmation: {
-                confirmationCode: randomUUID(),
-                expirationDate: new Date(),
-                isConfirmed: true,
-            },
-            passwordRecovery: {
-                recoveryCode: randomUUID(),
-                expirationDate: new Date(),
-                isConfirmed: false
-            }
+            isConfirmed: true
         });
 
-        await this.insert(newUser);
-        return newUser.toViewModel();
+        return user.toViewModel();
     }
 
-    async insert(user: UserEntity): Promise<void> {
-        await new UserModel(user.toObject()).save();
-    }
+
 
     async updateConfirmation(idOrEmail: string, update: any): Promise<boolean> {
         const user = await UserModel.findOne({ $or: [{ id: idOrEmail }, { email: idOrEmail }] });

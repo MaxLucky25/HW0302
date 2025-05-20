@@ -1,36 +1,32 @@
 import {PostDto, PostModel, PostViewModel} from '../models/postModels';
-import {inject, injectable} from "inversify";
-import TYPES from '../di/types';
-import {BlogQueryRepository} from "../queryRepo/blogQueryRepository";
+import {injectable} from "inversify";
+import {BlogModel} from "../models/blogModel";
 
 @injectable()
 export class PostRepository {
-    constructor(
-       @inject(TYPES.BlogQueryRepository)private blogQueryRepository: BlogQueryRepository
-    ) {}
-
+    async getById(id: string): Promise<PostViewModel | null> {
+        const post = await PostModel.findOne({id});
+        return post ? post.toViewModel() : null;
+    }
     async create(input:PostDto): Promise<PostViewModel | null> {
-        const blog = await this.blogQueryRepository.getById(input.blogId);
+        const blog = await BlogModel.findOne({id:input.blogId});
         if (!blog) return null;
 
-        const newPost = new PostModel({
-            id: Date.now().toString(),
+        const newPost = await PostModel.createPost ({
             title: input.title,
             shortDescription: input.shortDescription,
             content: input.content,
             blogId: input.blogId,
             blogName: blog.name,
-            createdAt: new Date()
         });
 
-        await newPost.save();
         return newPost.toViewModel();
     }
 
     async update(id: string, input:PostDto): Promise<boolean> {
         const post = await PostModel.findOne({id});
         if (!post) return false;
-        const blog = await this.blogQueryRepository.getById(input.blogId);
+        const blog = await BlogModel.findOne({id:input.blogId});
         if (!blog) return false;
 
         post.title = input.title;

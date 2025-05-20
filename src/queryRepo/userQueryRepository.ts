@@ -1,40 +1,27 @@
 import {getUsersPaginationParams} from "../utility/userPagination";
 import {injectable} from "inversify";
-import {UserEntity} from "../domain/userEntity";
 import {UserModel} from "../models/userModel";
 
 @injectable()
 export class UserQueryRepository  {
-    async getById(id: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ id }).lean();
-        return doc ? new UserEntity(doc) : null;
+    async getById(id: string) {
+        return  UserModel.findOne({ id });
     }
 
-    async getByLogin(login: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ login }).lean();
-        return doc ? new UserEntity(doc) : null;
+    async getByLogin(login: string) {
+        return  UserModel.findOne({ login });
     }
 
-    async getByEmail(email: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ email }).lean();
-        return doc ? new UserEntity(doc) : null;
+    async getByEmail(email: string) {
+        return  UserModel.findOne({ email });
     }
 
-    async getByLoginOrEmail(value: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({
-            $or: [{ login: value }, { email: value }]
-        }).lean();
-        return doc ? new UserEntity(doc) : null;
+    async findByConfirmationCode(code: string) {
+        return  UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
     }
 
-    async findByConfirmationCode(code: string): Promise<UserEntity | null> {
-        const doc = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code }).lean();
-        return doc ? new UserEntity(doc) : null;
-    }
-
-    async getByRecoveryCode(code: string): Promise<UserEntity | null> {
-        const user = await UserModel.findOne({ "passwordRecovery.recoveryCode": code }).lean();
-        return user ? new UserEntity(user) : null;
+    async getByRecoveryCode(code: string) {
+        return  UserModel.findOne({ 'passwordRecovery.recoveryCode': code });
     }
 
 
@@ -60,14 +47,14 @@ export class UserQueryRepository  {
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
-            .lean();
+            .exec();
 
         return {
             pagesCount,
             page: pageNumber,
             pageSize,
             totalCount,
-            items: items.map(({_id,password, ...rest}) => rest),
+            items: items.map(u => u.toViewModel()),
         };
     }
 }
