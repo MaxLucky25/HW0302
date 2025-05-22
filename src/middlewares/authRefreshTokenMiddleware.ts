@@ -1,18 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../utility/config';
-import {inject, injectable} from "inversify";
-import TYPES from "../di/types";
-import {SessionRepository} from "../repositories/sessionRepository";
+import {SessionModel} from "../models/sessionModel";
 
-@injectable()
-export class AuthRefreshTokenMiddleware {
-    constructor(
-        @inject(TYPES.SessionRepository) private sessionRepository: SessionRepository,
-    ) {}
 
-    execute = async (req: Request, res: Response, next: NextFunction) => {
-        const refreshToken = req.cookies?.refreshToken;
+export const authRefreshTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+
+    const refreshToken = req.cookies?.refreshToken;
 
         if (!refreshToken) {
             res.sendStatus(401);
@@ -22,7 +16,7 @@ export class AuthRefreshTokenMiddleware {
         try {
             const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as JwtPayload;
 
-            const session = await this.sessionRepository.findByDeviceId(decoded.deviceId);
+            const session = await SessionModel.findOne({deviceId :decoded.deviceId});
             if (!session || session.lastActiveDate !== decoded.lastActiveDate) {
                 res.sendStatus(401);
                 return;
@@ -39,5 +33,5 @@ export class AuthRefreshTokenMiddleware {
             return;
         }
 
-    }
-}
+    };
+

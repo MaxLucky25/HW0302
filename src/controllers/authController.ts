@@ -42,7 +42,6 @@ export class AuthController {
             res.sendStatus(401);
             return;
         }
-
         const ip: string = req.ip ?? 'unknown-ip';
         const title: string = req.get('User-Agent') ?? 'Unknown device';
 

@@ -1,18 +1,10 @@
-import {body, ValidationChain} from 'express-validator';
-import {inject, injectable} from "inversify";
-import TYPES from '../di/types';
-import {UserQueryRepository} from "../queryRepo/userQueryRepository";
+import {body} from 'express-validator';
+import { UserModel } from '../models/userModel';
 
 
-@injectable()
-export class AuthValidator {
-    constructor(
-        @inject(TYPES.UserQueryRepository) private userQueryRepository: UserQueryRepository,
-    ) {
-    }
 
-    loginValidators(): ValidationChain[] {
-        return [
+
+   export const  loginValidator = [
             body('loginOrEmail')
                 .isString().withMessage('loginOrEmail must be a string')
                 .notEmpty().withMessage('loginOrEmail is required'),
@@ -20,18 +12,16 @@ export class AuthValidator {
                 .isString().withMessage('Password must be a string')
                 .notEmpty().withMessage('Password is required')
         ];
-    }
 
 
-    registrationValidators(): ValidationChain[] {
-        return [
+export const registrationValidators = [
             body('login')
                 .isString().withMessage('Login must be a string')
                 .trim()
                 .isLength({min: 3, max: 10}).withMessage('Login must be between 3 and 10 characters')
                 .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login contains invalid characters')
                 .custom(async (login) => {
-                    const user = await this.userQueryRepository.getByLogin(login);
+                    const user = await UserModel.findOne({ login });
                     if (user) {
                         throw new Error('Login already exists');
                     }
@@ -47,24 +37,21 @@ export class AuthValidator {
                 .trim()
                 .isEmail().withMessage('Invalid email format')
                 .custom(async (email) => {
-                    // 🔧 Проверка существования email
-                    const user = await this.userQueryRepository.getByEmail(email);
+                    const user = await UserModel.findOne({ email });
                     if (user) {
                         throw new Error('Email already exists');
                     }
                     return true;
                 })
         ];
-    }
 
 
-    confirmationValidators(): ValidationChain[] {
-        return [
+export const confirmationValidators = [
         body('code')
             .isString().withMessage('Code must be a string')
             .notEmpty().withMessage('Code is required')
             .custom(async (code) => {
-                const user = await this.userQueryRepository.findByConfirmationCode(code);
+                const user = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
                 if (!user) {
                     throw new Error('Incorrect, expired, or already confirmed code');
                 }
@@ -77,17 +64,14 @@ export class AuthValidator {
                 return true;
             })
     ];
-}
 
-
-    emailResendingValidators(): ValidationChain[] {
-        return [
+export const emailResendingValidators = [
             body('email')
                 .isString().withMessage('Email must be a string')
                 .trim()
                 .isEmail().withMessage('Invalid email format')
                 .custom(async (email) => {
-                    const user = await this.userQueryRepository.getByEmail(email);
+                    const user = await UserModel.findOne({ email });
                     if (!user) {
                         throw new Error('User not found');
                     }
@@ -97,18 +81,15 @@ export class AuthValidator {
                     return true;
                 })
         ];
-    }
 
-    recoveryEmailValidator(): ValidationChain[] {
-        return [
+export const recoveryEmailValidator = [
             body('email')
                 .isEmail().withMessage('Invalid email format')
                 .notEmpty().withMessage('Email is required')
         ];
-    }
 
-    newPasswordValidator(): ValidationChain[] {
-        return [
+
+export const newPasswordValidator = [
             body('newPassword')
                 .isString().withMessage('Password must be a string')
                 .isLength({ min: 6, max: 20 }).withMessage('Password must be between 6 and 20 characters'),
@@ -116,7 +97,7 @@ export class AuthValidator {
                 .isString().withMessage('Recovery code must be a string')
                 .notEmpty().withMessage('Recovery code is required')
                 .custom(async (code) => {
-                    const user = await this.userQueryRepository.getByRecoveryCode(code);
+                    const user = await UserModel.findOne({ 'passwordRecovery.recoveryCode': code });
                     if (!user) {
                         throw new Error('Incorrect or expired recovery code');
                     }
@@ -130,6 +111,3 @@ export class AuthValidator {
                     return true;
                 })
         ];
-    }
-
-}

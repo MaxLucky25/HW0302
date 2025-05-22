@@ -1,39 +1,44 @@
 import {Router} from "express";
 import { inputCheckErrorsMiddleware } from "../middlewares/inputCheckErrorMiddleware";
 import { authJwtMiddleware } from "../middlewares/authJwtMiddleware";
-import {AuthValidator} from "../validators/authValidators";
-import {AuthRefreshTokenMiddleware} from "../middlewares/authRefreshTokenMiddleware";
+import {
+    confirmationValidators,
+    emailResendingValidators,
+    loginValidator,
+    newPasswordValidator,
+    recoveryEmailValidator,
+    registrationValidators
+} from "../validators/authValidators";
 import {rateLimitMiddleware} from "../middlewares/rateLimitMiddleware";
 import container from "../di/iosContaner";
 import TYPES from "../di/types";
 import { AuthController } from "../controllers/authController";
+import { authRefreshTokenMiddleware } from "../middlewares/authRefreshTokenMiddleware";
 
 
 
 const controller = container.get<AuthController>(TYPES.AuthController);
-const validator = container.get<AuthValidator>(TYPES.AuthValidator);
-const authRefreshValidator = container.get<AuthRefreshTokenMiddleware>(TYPES.AuthRefreshTokenMiddleware)
 export const authRouter = Router();
 
 
 
 authRouter.post('/login',
     rateLimitMiddleware,
-    validator.loginValidators(),
+    loginValidator,
     inputCheckErrorsMiddleware,
     controller.login
 );
 
 authRouter.post('/refresh-token',
     rateLimitMiddleware,
-    authRefreshValidator.execute,
+    authRefreshTokenMiddleware,
     controller.refreshTokens
 );
 
 
 authRouter.post('/logout',
     rateLimitMiddleware,
-    authRefreshValidator.execute,
+    authRefreshTokenMiddleware,
     controller.logout
 );
 
@@ -45,35 +50,35 @@ authRouter.get('/me',
 
 authRouter.post('/registration',
     rateLimitMiddleware,
-    validator.registrationValidators(),
+    registrationValidators,
     inputCheckErrorsMiddleware,
     controller.register
 );
 
 authRouter.post('/registration-confirmation',
     rateLimitMiddleware,
-    validator.confirmationValidators(),
+    confirmationValidators,
     inputCheckErrorsMiddleware,
     controller.confirm
 );
 
 authRouter.post('/registration-email-resending',
     rateLimitMiddleware,
-    validator.emailResendingValidators(),
+    emailResendingValidators,
     inputCheckErrorsMiddleware,
     controller.resendEmail
 );
 
 authRouter.post('/password-recovery',
     rateLimitMiddleware,
-    validator.recoveryEmailValidator(),
+    recoveryEmailValidator,
     inputCheckErrorsMiddleware,
     controller.sendRecoveryCode
 );
 
 authRouter.post('/new-password',
     rateLimitMiddleware,
-    validator.newPasswordValidator(),
+    newPasswordValidator,
     inputCheckErrorsMiddleware,
     controller.setNewPassword
 );

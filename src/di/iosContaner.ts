@@ -22,9 +22,6 @@ import {SessionRepository} from "../repositories/sessionRepository";
 import {AuthService} from "../services/authService";
 import {AuthController} from "../controllers/authController";
 import {SecurityController} from "../controllers/securityController";
-import {AuthValidator} from "../validators/authValidators";
-import {PostValidator} from "../validators/postValidators";
-import {AuthRefreshTokenMiddleware} from "../middlewares/authRefreshTokenMiddleware";
 import { CommentQueryRepository } from "../queryRepo/commentQueryRepository";
 
 
@@ -63,8 +60,5 @@ container.bind<SecurityController>(TYPES.SecurityController).to(SecurityControll
 container.bind<AuthService>(TYPES.AuthService).to(AuthService);
 container.bind<AuthController>(TYPES.AuthController).to(AuthController);
 
-container.bind<AuthValidator>(TYPES.AuthValidator).to(AuthValidator);
-container.bind<PostValidator>(TYPES.PostValidator).to(PostValidator);
-container.bind<AuthRefreshTokenMiddleware>(TYPES.AuthRefreshTokenMiddleware).to(AuthRefreshTokenMiddleware);
 
 export default container;

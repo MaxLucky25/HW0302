@@ -1,18 +1,8 @@
-import {body, ValidationChain} from 'express-validator';
-import {inject, injectable} from "inversify";
-import TYPES from '../di/types';
-import {BlogQueryRepository} from "../queryRepo/blogQueryRepository";
+import {body} from 'express-validator';
+import {BlogModel} from "../models/blogModel";
 
 
-@injectable()
-export class PostValidator {
-    constructor(
-        @inject(TYPES.BlogQueryRepository) private blogQueryRepository: BlogQueryRepository
-    )
-    {}
-
- postValidator(): ValidationChain [] {
-    return [
+ export const postValidator =[
     body('title')
         .trim()
         .isLength({ min: 1, max: 30 }).withMessage('Title length 1-30')
@@ -30,12 +20,10 @@ export class PostValidator {
         body('blogId')
         .optional()
         .custom(async (value) => {
-            const blog = await this.blogQueryRepository.getById(value);
+            const blog = await BlogModel.findOne({id:value});
             if (!blog) throw new Error('Blog not found');
             return true;
         })
         .withMessage('Invalid blogId')
 ];
 
-    }
-}
