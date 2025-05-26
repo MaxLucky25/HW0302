@@ -1,4 +1,5 @@
 import { model, Schema, Document, Model } from "mongoose";
+import {randomUUID} from "crypto";
 
 export type CommentDBType = {
     id: string;
@@ -51,7 +52,7 @@ commentSchema.statics.createComment = function(input: {
     commentatorInfo: { userId: string; userLogin: string };
 }): ICommentDocument {
     return new CommentModel({
-        id: Date.now().toString(),
+        id: randomUUID(),
         content: input.content,
         postId: input.postId,
         commentatorInfo: input.commentatorInfo,

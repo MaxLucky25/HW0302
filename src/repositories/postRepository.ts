@@ -4,10 +4,6 @@ import {BlogModel} from "../models/blogModel";
 
 @injectable()
 export class PostRepository {
-    async getById(id: string): Promise<PostViewModel | null> {
-        const post = await PostModel.findOne({id});
-        return post ? post.toViewModel() : null;
-    }
     async create(input:PostDto): Promise<PostViewModel | null> {
         const blog = await BlogModel.findOne({id:input.blogId});
         if (!blog) return null;

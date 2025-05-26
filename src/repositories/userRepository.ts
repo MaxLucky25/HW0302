@@ -1,11 +1,14 @@
-import {injectable} from 'inversify';
-import {randomUUID} from "crypto";
+import {inject, injectable} from 'inversify';
 import {CreateUserDto, UserModel} from "../models/userModel";
-import bcrypt from "bcryptjs";
+import TYPES from "../di/types";
+import { BcryptService } from '../utility/bcryptService';
 
 
 @injectable()
 export class UserRepository {
+    constructor(
+        @inject(TYPES.BcryptService) private bcryptService: BcryptService
+    ) {}
 
     async doesExistByLoginOrEmail(login: string, email: string): Promise<boolean> {
         const count = await UserModel.countDocuments({ $or: [{ login }, { email }] });
@@ -16,7 +19,7 @@ export class UserRepository {
         const exists = await this.doesExistByLoginOrEmail(dto.login, dto.email);
         if (exists) return null;
 
-        const hashedPassword = await bcrypt.hash(dto.password, 10);
+        const hashedPassword = await this.bcryptService.generateHash(dto.password);
         const user = await UserModel.createUser({
             login: dto.login,
             password: hashedPassword,
@@ -48,27 +51,11 @@ export class UserRepository {
     }
 
 
-    async updateRecovery(userId: string, recovery: { recoveryCode: string, expirationDate: Date }): Promise<boolean> {
-        const user = await UserModel.findOne({id:userId});
-        if (!user) return false;
-        user.passwordRecovery = {
-            ...recovery,
-            isConfirmed: false
-        };
-        await user.save();
-        return true;
-    }
-
-
     async updatePassword(userId: string, newHashedPassword: string): Promise<boolean> {
         const user = await UserModel.findOne({id:userId});
         if (!user) return false;
         user.password = newHashedPassword;
-        user.passwordRecovery = {
-            recoveryCode: randomUUID(),
-            expirationDate: new Date(),
-            isConfirmed: false
-        };
+        user.resetPasswordRecovery();
         await user.save();
         return true;
     }

@@ -2,9 +2,6 @@ import { injectable } from 'inversify';
 import { getPaginationParams } from '../utility/commonPagination';
 import {BlogModel, BlogViewModel } from '../models/blogModel';
 
-
-
-
 @injectable()
 export class BlogQueryRepository {
 

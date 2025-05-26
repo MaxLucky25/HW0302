@@ -1,5 +1,5 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import config from '../utility/config';
+import config from './config';
 import {injectable} from "inversify";
 
 
@@ -23,13 +23,6 @@ export class JwtService  {
         );
     }
 
-    verifyAccessToken(token: string): JwtPayload | null {
-        try {
-            return jwt.verify(token, config.JWT_SECRET) as JwtPayload;
-        } catch {
-            return null;
-        }
-    }
 
     verifyRefreshToken(token: string): JwtPayload | null {
         try {
@@ -39,14 +32,4 @@ export class JwtService  {
         }
     }
 
-
-    getRefreshTokenExpiry(token: string): Date | null {
-        try {
-            const decoded = jwt.decode(token) as JwtPayload;
-            if (!decoded?.exp) return null;
-            return new Date(decoded.exp * 1000);
-        } catch {
-            return null;
-        }
-    }
 }

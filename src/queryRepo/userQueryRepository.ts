@@ -8,22 +8,9 @@ export class UserQueryRepository  {
         return  UserModel.findOne({ id });
     }
 
-    async getByLogin(login: string) {
-        return  UserModel.findOne({ login });
-    }
-
     async getByEmail(email: string) {
         return  UserModel.findOne({ email });
     }
-
-    async findByConfirmationCode(code: string) {
-        return  UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
-    }
-
-    async getByRecoveryCode(code: string) {
-        return  UserModel.findOne({ 'passwordRecovery.recoveryCode': code });
-    }
-
 
     async getUsers(query: any): Promise<any>{
         const {pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm} =

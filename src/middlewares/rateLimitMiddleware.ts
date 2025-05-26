@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import config from "../utility/config";
 import {RequestLogModel} from "../models/requestLogModel";
+import {subSeconds} from "date-fns";
 
 
 
@@ -8,7 +9,7 @@ export const rateLimitMiddleware = async (req: Request, res: Response, next: Nex
     const ip = req.ip;
     const url = req.originalUrl;
 
-    const windowStart = new Date(Date.now() - config.LIMIT_WINDOW_SECONDS * 1000);
+    const windowStart = subSeconds(new Date(), config.LIMIT_WINDOW_SECONDS);
 
     const requestsCount = await RequestLogModel.countDocuments({
         ip,

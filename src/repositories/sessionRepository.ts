@@ -1,25 +1,15 @@
 import { injectable } from "inversify";
-import { SessionDBType, SessionModel } from "../models/sessionModel";
+import { SessionModel } from "../models/sessionModel";
 
 
 @injectable()
 export class SessionRepository  {
-    async createSession(session: SessionDBType) {
-        await SessionModel.create(session);
+    async createLoginSession(userId: string, ip: string, title: string) {
+        return await SessionModel.createLoginSession(userId, ip, title);
     }
 
-        async updateLastActiveDate(
-            deviceId: string,
-            lastActiveDate: string,
-            expiresDate: string,
-            ip: string,
-            title: string
-        ) {
-            const result = await SessionModel.updateOne(
-                { deviceId },
-                { $set: { lastActiveDate, expiresDate, ip, title } }
-            );
-        return result.modifiedCount === 1;
+    async updateSessionActivity(deviceId: string, ip: string, title: string) {
+        return SessionModel.updateSessionActivity(deviceId, ip, title);
     }
 
     async deleteByDeviceId(deviceId: string) {

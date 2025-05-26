@@ -2,9 +2,7 @@ import {body} from 'express-validator';
 import { UserModel } from '../models/userModel';
 
 
-
-
-   export const  loginValidator = [
+export const  loginValidator = [
             body('loginOrEmail')
                 .isString().withMessage('loginOrEmail must be a string')
                 .notEmpty().withMessage('loginOrEmail is required'),

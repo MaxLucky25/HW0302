@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import config from "../utility/config";
+import config from "./config";
 import {injectable} from "inversify";
 
 

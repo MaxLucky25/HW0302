@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import {inject, injectable} from "inversify";
 import {AuthService} from "../services/authService";
 import TYPES from "../di/types";
-import {JwtService} from "../services/jwtService";
+import {JwtService} from "../utility/jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {UserQueryRepository} from "../queryRepo/userQueryRepository";
 

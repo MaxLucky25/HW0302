@@ -1,9 +1,7 @@
-import { randomUUID } from "crypto";
-import { add } from "date-fns";
-import {BcryptService} from "./bcryptService";
+import {BcryptService} from "../utility/bcryptService";
 import {UserRepository} from "../repositories/userRepository";
-import {EmailService} from "./emailService";
-import {JwtService} from "./jwtService";
+import {EmailService} from "../utility/emailService";
+import {JwtService} from "../utility/jwtService";
 import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
@@ -31,27 +29,23 @@ export class AuthService {
         if (!isValid) return null;
 
 
-        const deviceId = randomUUID();
-        const lastActiveDate = new Date().toISOString();
-        const expiresDate = add(new Date(), { days: 7 }).toISOString();
-
-        const payload = { userId: user.id, deviceId, lastActiveDate };
-
-        await this.sessionRepository.createSession({
-            userId: user.id,
-            deviceId,
+        const { deviceId, lastActiveDate } = await this.sessionRepository.createLoginSession(
+            user.id,
             ip,
-            title,
-            lastActiveDate,
-            expiresDate
-        });
+            title
+        );
+
         return {
             accessToken: this.jwtService.createAccessToken({
                 userId: user.id,
                 login: user.login,
                 email: user.email,
             }),
-            refreshToken: this.jwtService.createRefreshToken(payload),
+            refreshToken: this.jwtService.createRefreshToken({
+                userId: user.id,
+                deviceId,
+                lastActiveDate,
+            }),
         };
     }
 
@@ -63,25 +57,17 @@ export class AuthService {
         const session = await this.sessionRepository.findByDeviceId(payload.deviceId);
         if (!session || session.lastActiveDate !== payload.lastActiveDate) return null;
 
-        const newLastActiveDate = new Date().toISOString();
-        const newExpiresDate = add(new Date(), {days: 7 }).toISOString();
+        const updated = await this.sessionRepository.updateSessionActivity(payload.deviceId, ip, title);
+        if (!updated) return null;
 
-        await this.sessionRepository.updateLastActiveDate(
-            payload.deviceId,
-            newLastActiveDate,
-            newExpiresDate,
-            ip,
-            title
-        );
+        const user = await UserModel.findOne({ id: payload.userId });
+        if (!user) return null;
 
         const newPayload = {
             userId: payload.userId,
             deviceId: payload.deviceId,
-            lastActiveDate: newLastActiveDate
+            lastActiveDate: updated.lastActiveDate
         };
-
-        const user = await UserModel.findOne({ id: payload.userId });
-        if (!user) return null;
 
         return {
             accessToken: this.jwtService.createAccessToken({
@@ -127,33 +113,21 @@ export class AuthService {
         const user = await UserModel.findOne({ email });
         if (!user || user.emailConfirmation.isConfirmed) return null;
 
-        const newConfirmation = {
-            confirmationCode: randomUUID(),
-            expirationDate: add(new Date(), { hours: 1 }),
-            isConfirmed: false
-        };
-        const updated = await this.userRepository.updateConfirmation(user.id, newConfirmation);
-        if (!updated) return null;
+        user.resetEmailConfirmation();
+        const saved = await user.save();
+        const sent = await this.emailService.sendRegistrationEmail(email, saved.emailConfirmation.confirmationCode);
 
-        const sent = await this.emailService.sendRegistrationEmail(email, newConfirmation.confirmationCode);
-        return sent ? newConfirmation.confirmationCode : null;
+        return sent ? saved.emailConfirmation.confirmationCode : null;
     }
 
     async sendPasswordRecoveryCode(email: string): Promise<boolean> {
         const user = await UserModel.findOne({ email });
         if (!user || !user.emailConfirmation.isConfirmed) return false;
 
-        const recoveryCode = randomUUID();
-        const expirationDate = add(new Date(), { minutes: 1 });
+        user.resetPasswordRecovery();
+        await user.save();
 
-        const updated = await this.userRepository.updateRecovery(user.id, {
-            recoveryCode,
-            expirationDate,
-
-        });
-        if (!updated) return false;
-
-        return await this.emailService.sendRecoveryEmail(email, recoveryCode);
+        return await this.emailService.sendRecoveryEmail(email, user.passwordRecovery.recoveryCode);
     }
 
     async confirmNewPassword(newPassword: string, recoveryCode: string): Promise<boolean> {
@@ -168,6 +142,4 @@ export class AuthService {
 
         return await this.userRepository.updatePassword(user.id, newHash);
     }
-
-
 }
