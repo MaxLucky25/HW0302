@@ -125,7 +125,7 @@ export class AuthController {
         res.status(200).send({
             email: user.email,
             login: user.login,
-            userId: user.id.toString(),
+            userId: user._id.toString(),
         });
     }
 

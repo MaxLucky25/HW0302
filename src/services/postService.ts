@@ -1,5 +1,5 @@
 import {PostRepository} from "../repositories/postRepository";
-import {PostDto} from "../models/postModels";
+import {PostDto} from "../models/postModel";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 

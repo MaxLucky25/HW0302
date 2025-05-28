@@ -26,6 +26,7 @@ export class EmailService  {
     }
 
     async sendRegistrationEmail(email: string, confirmationCode: string): Promise<boolean> {
+        console.log(`Confirmation code for ${email}: ${confirmationCode}`);
         const subject = "Подтверждение регистрации";
         const text = `Your confirmation code: ${confirmationCode}`;
         const html = `

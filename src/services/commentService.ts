@@ -1,8 +1,9 @@
 import {CommentRepository} from "../repositories/commentRepository";
-import {CommentViewModel, CommentDto} from "../models/commentModels";
+import {CommentViewModel, CommentDto} from "../models/commentModel";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
-import {PostModel} from "../models/postModels";
+import {PostModel} from "../models/postModel";
+import {toObjectId} from "../utility/toObjectId";
 
 @injectable()
 export class CommentService  {
@@ -15,7 +16,7 @@ export class CommentService  {
         userId: string;
         userLogin: string
     }): Promise<CommentViewModel | null> {
-        const post = await PostModel.findOne({id:postId});
+        const post = await PostModel.findOne({_id: toObjectId(postId)});
         if (!post) return null;
 
         return await this.commentRepository.create(postId, input, commentatorInfo);

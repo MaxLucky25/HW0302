@@ -6,6 +6,7 @@ import {SessionRepository} from "../repositories/sessionRepository";
 import {inject, injectable} from "inversify";
 import TYPES from "../di/types";
 import {UserModel} from "../models/userModel";
+import {toObjectId} from "../utility/toObjectId";
 
 
 @injectable()
@@ -37,12 +38,12 @@ export class AuthService {
 
         return {
             accessToken: this.jwtService.createAccessToken({
-                userId: user.id,
+                userId: user._id.toString(),
                 login: user.login,
                 email: user.email,
             }),
             refreshToken: this.jwtService.createRefreshToken({
-                userId: user.id,
+                userId: user._id.toString(),
                 deviceId,
                 lastActiveDate,
             }),
@@ -60,7 +61,7 @@ export class AuthService {
         const updated = await this.sessionRepository.updateSessionActivity(payload.deviceId, ip, title);
         if (!updated) return null;
 
-        const user = await UserModel.findOne({ id: payload.userId });
+        const user = await UserModel.findOne({ _id: toObjectId(payload.userId) });
         if (!user) return null;
 
         const newPayload = {
@@ -95,7 +96,7 @@ export class AuthService {
         await this.emailService.sendRegistrationEmail(email, user.emailConfirmation.confirmationCode);
 
         return {
-            userId: user.id,
+            userId: user._id.toString(),
             confirmationCode: user.emailConfirmation.confirmationCode
         };
     }

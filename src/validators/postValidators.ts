@@ -1,5 +1,6 @@
 import {body} from 'express-validator';
 import {BlogModel} from "../models/blogModel";
+import {toObjectId} from "../utility/toObjectId";
 
 
  export const postValidator =[
@@ -20,7 +21,7 @@ import {BlogModel} from "../models/blogModel";
         body('blogId')
         .optional()
         .custom(async (value) => {
-            const blog = await BlogModel.findOne({id:value});
+            const blog = await BlogModel.findOne({_id: toObjectId(value)});
             if (!blog) throw new Error('Blog not found');
             return true;
         })

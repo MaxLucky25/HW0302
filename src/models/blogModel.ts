@@ -1,9 +1,15 @@
-import {Model, model, Schema, Document} from "mongoose";
-import {ObjectId} from "mongodb";
-import {randomUUID} from "crypto";
+import {Model, model, Schema, Document, Types} from "mongoose";
 
 export type BlogDBType = {
-    _id?: ObjectId;
+    _id: Types.ObjectId;
+    name: string;
+    description: string;
+    websiteUrl: string;
+    createdAt: Date;
+    isMembership: boolean;
+};
+
+export type BlogViewModel = {
     id: string;
     name: string;
     description: string;
@@ -11,11 +17,10 @@ export type BlogDBType = {
     createdAt: Date;
     isMembership: boolean;
 };
-export type BlogViewModel = Omit<BlogDBType, '_id'>;
+
 export type BlogDto = Pick<BlogDBType, 'name' | 'description' | 'websiteUrl'>;
 
-interface IBlogDocument extends Document {
-    id: string;
+interface IBlogDocument extends Document<Types.ObjectId> {
     name: string;
     description: string;
     websiteUrl: string;
@@ -33,7 +38,6 @@ interface IBlogModelStatic extends Model<IBlogDocument> {
 }
 
 const BlogSchema = new Schema<IBlogDocument>({
-    id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     websiteUrl: { type: String, required: true },
@@ -43,7 +47,7 @@ const BlogSchema = new Schema<IBlogDocument>({
 
 BlogSchema.methods.toViewModel = function (): BlogViewModel {
     return {
-        id: this.id,
+        id: this._id.toString(),
         name: this.name,
         description: this.description,
         websiteUrl: this.websiteUrl,
@@ -52,10 +56,9 @@ BlogSchema.methods.toViewModel = function (): BlogViewModel {
     };
 };
 
-BlogSchema.statics.createBlog = function ({name, description,websiteUrl})
+BlogSchema.statics.createBlog = function ({name, description, websiteUrl})
     :Promise<IBlogDocument>{
     const blog = new this({
-        id: randomUUID(),
         name,
         description,
         websiteUrl,

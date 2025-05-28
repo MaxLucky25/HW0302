@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb";
-import { model, Schema, Document, Model } from "mongoose";
+import {model, Schema, Document, Model, Types} from "mongoose";
 import { randomUUID } from "crypto";
 import config from "../utility/config";
 import {add} from "date-fns";
@@ -17,8 +16,7 @@ export type PasswordRecoveryType = {
 };
 
 export type UserDBType = {
-    _id?: ObjectId;
-    id: string;
+    _id: Types.ObjectId;
     login: string;
     password: string;
     email: string;
@@ -36,8 +34,7 @@ export type UserViewModel = {
 
 export type CreateUserDto = Pick<UserDBType, 'login' | 'password' | 'email'>;
 
-interface IUserDocument extends Document {
-    id: string;
+interface IUserDocument extends Document<Types.ObjectId> {
     login: string;
     password: string;
     email: string;
@@ -71,7 +68,6 @@ const PasswordRecoverySchema = new Schema<PasswordRecoveryType>({
 }, { _id: false });
 
 const UserSchema = new Schema<IUserDocument>({
-    id: { type: String, required: true, unique: true },
     login: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -82,7 +78,7 @@ const UserSchema = new Schema<IUserDocument>({
 
 UserSchema.methods.toViewModel = function (): UserViewModel {
     return {
-        id: this.id,
+        id: this._id.toString(),
         login: this.login,
         email: this.email,
         createdAt: this.createdAt
@@ -91,7 +87,7 @@ UserSchema.methods.toViewModel = function (): UserViewModel {
 UserSchema.methods.resetPasswordRecovery = function (): void {
     this.passwordRecovery = {
         recoveryCode: randomUUID(),
-        expirationDate: add(new Date(), { minutes: config.PASSWORD_RECOVERY_EXPIRATION_MINUTES }),
+        expirationDate: add(new Date(), { minutes: config.PASSWORD_RECOVERY_EXPIRATION }),
         isConfirmed: false
     };
 };
@@ -99,7 +95,7 @@ UserSchema.methods.resetPasswordRecovery = function (): void {
 UserSchema.methods.resetEmailConfirmation = function (): void {
     this.emailConfirmation = {
         confirmationCode: randomUUID(),
-        expirationDate: add(new Date(), { minutes: config.EMAIL_CONFIRMATION_EXPIRATION_MINUTES }),
+        expirationDate: add(new Date(), { minutes: config.EMAIL_CONFIRMATION_EXPIRATION }),
         isConfirmed: false
     };
 };
@@ -108,19 +104,18 @@ UserSchema.methods.resetEmailConfirmation = function (): void {
 UserSchema.statics.createUser = function ({login, password, email, isConfirmed = false
 }): Promise<IUserDocument> {
     const user = new this({
-        id: randomUUID(),
         login,
         email,
         password,
         createdAt: new Date(),
         emailConfirmation: {
             confirmationCode: randomUUID(),
-            expirationDate: add(new Date(), { minutes: config.EMAIL_CONFIRMATION_EXPIRATION_MINUTES }),
+            expirationDate: add(new Date(), { minutes: config.EMAIL_CONFIRMATION_EXPIRATION}),
             isConfirmed
         },
         passwordRecovery: {
             recoveryCode: randomUUID(),
-            expirationDate: add(new Date(), { minutes: config.PASSWORD_RECOVERY_EXPIRATION_MINUTES }),
+            expirationDate: add(new Date(), { minutes: config.PASSWORD_RECOVERY_EXPIRATION }),
             isConfirmed: false
         }
     });

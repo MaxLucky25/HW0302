@@ -1,5 +1,6 @@
-import {CommentViewModel, CommentDto, CommentModel } from '../models/commentModels';
+import {CommentViewModel, CommentDto, CommentModel } from '../models/commentModel';
 import {injectable} from "inversify";
+import {toObjectId} from "../utility/toObjectId";
 
 
 @injectable()
@@ -19,7 +20,7 @@ export class CommentRepository  {
     }
 
     async update(id: string, input: CommentDto): Promise<boolean> {
-        const comment = await CommentModel.findOne({id});
+        const comment = await CommentModel.findOne({_id: toObjectId(id)});
         if (!comment) return false;
 
         comment.content = input.content;
@@ -28,7 +29,7 @@ export class CommentRepository  {
     }
 
     async delete(id: string): Promise<boolean> {
-        const result = await CommentModel.deleteOne({ id });
+        const result = await CommentModel.deleteOne({ _id: toObjectId(id) });
         return result.deletedCount === 1;
     }
 

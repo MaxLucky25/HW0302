@@ -1,9 +1,17 @@
-import {ObjectId} from "mongodb";
-import {Model, model, Schema} from "mongoose";
-import {randomUUID} from "crypto";
+import {Model, model, Schema, Document, Types} from "mongoose";
+import {toObjectId} from "../utility/toObjectId";
 
 export type PostDBType = {
-    _id?: ObjectId;
+    _id: Types.ObjectId;
+    title: string;
+    shortDescription: string;
+    content: string;
+    blogId: Types.ObjectId;
+    blogName: string;
+    createdAt: Date;
+};
+
+export type PostViewModel = {
     id: string;
     title: string;
     shortDescription: string;
@@ -13,9 +21,7 @@ export type PostDBType = {
     createdAt: Date;
 };
 
-export type PostViewModel =Omit<PostDBType, '_id'>;
-
-export type PostDto ={
+export type PostDto = {
     title: string;
     shortDescription: string;
     content: string;
@@ -28,7 +34,13 @@ export type inputPostDto = {
     content: string;
 }
 
-interface IPostDocument extends Document, PostDBType {
+interface IPostDocument extends Document<Types.ObjectId> {
+    title: string;
+    shortDescription: string;
+    content: string;
+    blogId: Types.ObjectId;
+    blogName: string;
+    createdAt: Date;
     toViewModel(): PostViewModel;
 }
 
@@ -42,25 +54,23 @@ interface IPostModelStatic extends Model<IPostDocument> {
     }): Promise<IPostDocument>;
 }
 
-
 const PostSchema = new Schema<IPostDocument>({
-    id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     shortDescription: { type: String, required: true },
     content: { type: String, required: true },
-    blogId: { type: String, required: true },
+    blogId: { type: Schema.Types.ObjectId, required: true, ref: 'Blog' },
     blogName: { type: String, required: true },
     createdAt: { type: Date, required: true, default: Date.now },
 });
 
 PostSchema.methods.toViewModel = function () :PostViewModel {
     return {
-        id:this.id,
+        id: this._id.toString(),
         title: this.title,
         shortDescription: this.shortDescription,
         content: this.content,
-        blogId: this.blogId,
-        blogName:this.blogName,
+        blogId: this.blogId.toString(),
+        blogName: this.blogName,
         createdAt: this.createdAt,
     };
 };
@@ -69,11 +79,10 @@ PostSchema.statics.createPost = function
 ({title, shortDescription, content, blogId, blogName})
     :Promise<IPostDocument> {
     const post = new this({
-        id: randomUUID(),
         title,
         shortDescription,
         content,
-        blogId,
+        blogId: toObjectId(blogId),
         blogName,
         createdAt: new Date(),
     });

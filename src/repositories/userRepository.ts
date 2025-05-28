@@ -2,6 +2,8 @@ import {inject, injectable} from 'inversify';
 import {CreateUserDto, UserModel} from "../models/userModel";
 import TYPES from "../di/types";
 import { BcryptService } from '../utility/bcryptService';
+import {toObjectId} from "../utility/toObjectId";
+import {isValidObjectId} from "mongoose";
 
 
 @injectable()
@@ -33,7 +35,11 @@ export class UserRepository {
 
 
     async updateConfirmation(idOrEmail: string, update: any): Promise<boolean> {
-        const user = await UserModel.findOne({ $or: [{ id: idOrEmail }, { email: idOrEmail }] });
+        const query: any = { $or: [{ email: idOrEmail }] };
+        if (isValidObjectId(idOrEmail)) {
+            query.$or.push({ _id: toObjectId(idOrEmail) });
+        }
+        const user = await UserModel.findOne(query);
         if (!user) return false;
 
         if (update.confirmationCode !== undefined) {
@@ -52,7 +58,7 @@ export class UserRepository {
 
 
     async updatePassword(userId: string, newHashedPassword: string): Promise<boolean> {
-        const user = await UserModel.findOne({id:userId});
+        const user = await UserModel.findOne({_id: toObjectId(userId)});
         if (!user) return false;
         user.password = newHashedPassword;
         user.resetPasswordRecovery();
@@ -62,7 +68,7 @@ export class UserRepository {
 
 
     async delete(id: string): Promise<boolean> {
-        const result = await UserModel.deleteOne({ id });
+        const result = await UserModel.deleteOne({ _id: toObjectId(id) });
         return result.deletedCount === 1;
     }
 }

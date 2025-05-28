@@ -1,11 +1,12 @@
 import {getUsersPaginationParams} from "../utility/userPagination";
 import {injectable} from "inversify";
 import {UserModel} from "../models/userModel";
+import {toObjectId} from "../utility/toObjectId";
 
 @injectable()
 export class UserQueryRepository  {
     async getById(id: string) {
-        return  UserModel.findOne({ id });
+        return  UserModel.findOne({_id: toObjectId(id) });
     }
 
     async getByEmail(email: string) {

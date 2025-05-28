@@ -1,13 +1,18 @@
 import { injectable } from 'inversify';
 import { getPaginationParams } from '../utility/commonPagination';
 import {BlogModel, BlogViewModel } from '../models/blogModel';
+import {toObjectId} from "../utility/toObjectId";
 
 @injectable()
 export class BlogQueryRepository {
 
     async getById(id: string): Promise<BlogViewModel | null> {
-        const blog = await BlogModel.findOne({ id });
-        return blog ? blog.toViewModel() : null;
+        try {
+            const blog = await BlogModel.findOne({ _id: toObjectId(id) });
+            return blog ? blog.toViewModel() : null;
+        } catch {
+            return null;
+        }
     }
 
 

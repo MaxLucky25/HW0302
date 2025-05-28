@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { BlogModel } from '../models/blogModel';
-import {CommentModel} from "../models/commentModels";
-import { PostModel } from '../models/postModels';
+import {CommentModel} from "../models/commentModel";
+import { PostModel } from '../models/postModel';
 import {RequestLogModel} from "../models/requestLogModel";
 import {SessionModel} from "../models/sessionModel";
 import { UserModel } from '../models/userModel';
