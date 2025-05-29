@@ -1,4 +1,4 @@
-import {Model, model, Schema} from "mongoose";
+import {Model, model, Schema, Types} from "mongoose";
 import { randomUUID } from "crypto";
 import config from "../utility/config";
 import {add} from "date-fns";
@@ -7,6 +7,7 @@ import {add} from "date-fns";
 
 
 export type SessionDBType = {
+    _id: Types.ObjectId;
     userId: string;
     deviceId: string;
     ip: string;

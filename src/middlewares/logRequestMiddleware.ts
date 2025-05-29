@@ -10,7 +10,7 @@ export const logRequestMiddleware = async (req: Request, res: Response, next: Ne
             date: new Date(),
         };
 
-        await RequestLogModel.insertOne(logEntry);
+        await RequestLogModel.create(logEntry);
     } catch (err) {
         console.error('Logging error:', err);
     }
